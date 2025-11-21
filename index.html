@@ -9,8 +9,8 @@
         :root {
             --primary-color: #4a90e2;
             --accent-color: #ff5f57;
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.6);
             --shadow-lg: 0 15px 35px rgba(0,0,0,0.15);
             --shadow-sm: 0 5px 15px rgba(0,0,0,0.08);
             --text-main: #2c3e50;
@@ -27,8 +27,14 @@
             outline: none;
         }
 
+        /* 允許特定區域選取文字 (如輸入框) */
+        input, textarea, [contenteditable] {
+            user-select: text;
+            cursor: text;
+        }
+
         body {
-            font-family: 'Noto Sans TC', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
             background: url('background/background001.png') no-repeat center center fixed;
             background-size: cover;
             background-color: #eef2f5;
@@ -50,10 +56,10 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            pointer-events: none;
+            pointer-events: none; /* 讓點擊穿透到畫布 */
         }
 
-        /* --- 底部工具列容器 (包含縮小按鈕) --- */
+        /* --- 底部工具列 --- */
         .toolbar-wrapper {
             position: relative;
             margin-bottom: 30px;
@@ -62,13 +68,11 @@
             flex-direction: column;
             align-items: center;
             transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            pointer-events: auto;
         }
 
-        .toolbar-wrapper.minimized {
-            transform: translateY(120%);
-        }
+        .toolbar-wrapper.minimized { transform: translateY(120%); }
 
-        /* 縮小/展開按鈕 */
         .toggle-bar-btn {
             position: absolute;
             top: -40px;
@@ -89,17 +93,11 @@
             border: 1px solid var(--glass-border);
             transition: all 0.3s;
         }
-        
-        .toggle-bar-btn:hover {
-            background: white;
-            color: var(--primary-color);
-        }
+        .toggle-bar-btn:hover { background: white; color: var(--primary-color); }
 
-        /* 工具列本體 */
         .toolbar-container {
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             padding: 12px 25px;
@@ -108,7 +106,7 @@
             gap: 12px;
             overflow-x: auto;
             max-width: 90vw;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
         .toolbar-container::-webkit-scrollbar { display: none; }
 
@@ -120,9 +118,7 @@
             color: #555;
             min-width: 60px;
             transition: all 0.2s;
-            position: relative;
         }
-
         .tool-btn:active { transform: scale(0.92); }
         .tool-btn:hover { color: var(--primary-color); }
         .tool-btn.danger:hover { color: var(--accent-color); }
@@ -141,22 +137,13 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             transition: all 0.2s;
         }
-        
-        .tool-btn:hover .tool-icon {
-            background: #fff;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-        }
-        .tool-btn.danger:hover .tool-icon { border-color: var(--accent-color); color: var(--accent-color); }
-
-        .tool-label { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; white-space: nowrap;}
+        .tool-btn:hover .tool-icon { background: #fff; transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+        .tool-label { font-size: 12px; font-weight: 600; white-space: nowrap;}
 
         /* 背景選單 */
         .bg-menu {
             display: none;
             position: absolute;
-            bottom: 80px;
-            left: 0; 
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             padding: 8px;
@@ -166,12 +153,10 @@
             gap: 4px;
             z-index: 200;
             min-width: 140px;
-            border: 1px solid rgba(0,0,0,0.1);
         }
         .bg-menu.show { display: flex; animation: fadeInUp 0.2s; }
         @keyframes fadeInUp { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
-        
-        .bg-option { padding: 8px 12px; cursor: pointer; font-size: 13px; border-radius: 6px; color: #333; transition: 0.2s; }
+        .bg-option { padding: 8px 12px; cursor: pointer; font-size: 13px; border-radius: 6px; color: #333; }
         .bg-option:hover { background: #f0f4f8; color: var(--primary-color); font-weight: bold; }
 
         /* --- Widget 視窗樣式 --- */
@@ -179,25 +164,20 @@
             position: absolute;
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
             min-width: 250px;
-            min-height: 150px; /* 預設最小高度 */
+            min-height: 150px;
             display: flex;
             flex-direction: column;
             pointer-events: auto;
             animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             z-index: 10;
             border: 1px solid var(--glass-border);
-            overflow: hidden; /* 為了 resize */
-            resize: both;     /* 允許使用者調整大小 */
+            resize: both;
+            overflow: hidden;
         }
-
-        @keyframes popIn {
-            from { transform: scale(0.9) translateY(20px); opacity: 0; }
-            to { transform: scale(1) translateY(0); opacity: 1; }
-        }
+        @keyframes popIn { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 
         .widget-header {
             padding: 10px 15px;
@@ -207,14 +187,13 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(0,0,0,0.05);
-            flex-shrink: 0; /* 防止 header 被壓縮 */
+            flex-shrink: 0;
         }
         .widget-header:active { cursor: grabbing; }
         .widget-title { font-size: 13px; color: #666; font-weight: 700; letter-spacing: 1px; }
         .header-controls { display: flex; gap: 8px; align-items: center; }
         .ctrl-btn { cursor: pointer; color: #999; font-size: 14px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; }
         .ctrl-btn:hover { background: rgba(0,0,0,0.05); color: var(--primary-color); }
-        .close-btn { color: #ff5f57; font-size: 16px; }
         .close-btn:hover { background: #ff5f57; color: white; }
 
         .widget-content {
@@ -223,220 +202,162 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            overflow: auto; /* 內容過多時滾動 */
+            overflow: auto;
             width: 100%;
             height: 100%;
             position: relative;
+            cursor: default; 
         }
-
-        /* 隱藏捲軸但保留功能 */
         .widget-content::-webkit-scrollbar { width: 6px; height: 6px; }
         .widget-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
 
-        /* --- Widget 專屬樣式 --- */
-
-        /* Traffic Light */
-        .traffic-container { display: flex; flex-direction: column; gap: 12px; width: 100%; transition: 0.3s; }
-        .traffic-row { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.5); padding: 5px 10px; border-radius: 30px; }
-        .light { width: 45px; height: 45px; border-radius: 50%; opacity: 0.3; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); transition: all 0.3s; flex-shrink: 0; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        /* --- Traffic Light --- */
+        .traffic-container { display: flex; flex-direction: column; gap: 8px; width: 100%; transition: 0.3s; padding-bottom: 10px;}
+        .traffic-row { 
+            display: flex; align-items: center; gap: 10px; 
+            background: rgba(255,255,255,0.5); padding: 5px 10px; border-radius: 30px; 
+            transition: all 0.2s;
+        }
+        .traffic-row.dragging { opacity: 0.5; border: 2px dashed #999; }
+        .drag-handle { cursor: grab; color: #aaa; font-size: 14px; padding: 0 5px; }
+        .light { width: 40px; height: 40px; border-radius: 50%; opacity: 0.3; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); transition: all 0.3s; flex-shrink: 0; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
         .light.active { opacity: 1; transform: scale(1.1); box-shadow: 0 0 15px currentColor, inset 0 -5px 10px rgba(0,0,0,0.2); border-color: transparent;}
-        .traffic-input { flex: 1; border: none; padding: 5px; font-size: 16px; background: transparent; color: var(--text-main); font-weight: 500; }
-        .traffic-hide-text .traffic-input, .traffic-hide-text .traffic-row { background: transparent; padding: 0; width: fit-content; margin: 0 auto; }
-        .traffic-hide-text .traffic-row { gap: 0; }
+        .traffic-input { flex: 1; border: none; padding: 5px; font-size: 16px; background: transparent; color: var(--text-main); font-weight: 500; min-width: 0; }
+        .traffic-del { cursor: pointer; color: #ccc; font-size: 14px; padding: 5px; transition: 0.2s; }
+        .traffic-del:hover { color: #ff5f57; }
+
+        .traffic-hide-text .traffic-input,
+        .traffic-hide-text .traffic-del,
+        .traffic-hide-text .drag-handle { display: none; }
+        .traffic-hide-text .traffic-row { background: transparent; width: fit-content; margin: 0 auto; padding: 0; gap: 0; }
+        .traffic-hide-text .light { margin: 5px 0; width: 60px; height: 60px; }
+
         .add-light-btn { font-size: 13px; color: #666; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); padding:6px 12px; border-radius:20px; cursor: pointer; align-self: center; margin-top: 5px; transition: 0.2s;}
         .add-light-btn:hover { background: white; color: var(--primary-color); }
 
-        /* Text Editor */
-        .text-toolbar { display: flex; gap: 5px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px; width: 100%; flex-wrap: wrap; }
-        .text-btn { background: white; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #555; }
+        /* --- Text Editor --- */
+        .text-toolbar { display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px; width: 100%; flex-wrap: wrap; align-items: center;}
+        .text-btn { background: white; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #555; padding: 0 5px;}
         .text-btn:hover { background: #f0f0f0; color: var(--primary-color); }
-        .text-editor { width: 100%; height: 100%; min-height: 120px; overflow-y: auto; outline: none; cursor: text; font-size: 18px; line-height: 1.5; padding: 5px; color: #333; }
-        /* 便利貼顏色 */
+        .text-select { height: 28px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; color: #333; background: white; outline: none; }
+        
+        .text-editor { 
+            width: 100%; height: 100%; min-height: 120px; overflow-y: auto; outline: none; cursor: text; 
+            font-size: 18px; line-height: 1.5; padding: 10px; color: #333; background: transparent;
+        }
+        /* Placeholder 實作 */
+        .text-editor:empty:before {
+            content: attr(placeholder);
+            color: #aaa;
+            font-style: italic;
+            pointer-events: none; /* 讓點擊穿透 */
+            display: block; /* 確保顯示 */
+        }
+        /* 當被聚焦(focus)時，即使是空的也不顯示 placeholder */
+        .text-editor:focus:before {
+            content: none;
+        }
+
+        .text-editor ul, .text-editor ol { margin-left: 20px; padding-left: 10px; }
+        .text-editor li { margin-bottom: 4px; }
         .bg-color-picker { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); display: inline-block; margin-left: 5px; }
 
-        /* Timer & Stopwatch (優化版) */
+        /* --- Draw Board --- */
+        .draw-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; }
+        .draw-tools { 
+            display: flex; gap: 8px; margin-bottom: 10px; background: #fff; padding: 8px 12px; border-radius: 30px; box-shadow: var(--shadow-sm); flex-wrap: wrap; justify-content: center;
+        }
+        .color-pick { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s; position: relative;}
+        .color-pick:hover { transform: scale(1.1); }
+        .color-pick.active { transform: scale(1.2); border-color: #333; z-index: 2; }
+        .tool-separator { width: 1px; height: 20px; background: #ddd; margin: 0 5px; }
+        .draw-btn {
+            font-size: 14px; color: #666; cursor: pointer; width: 30px; height: 30px; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .draw-btn:hover { background: #f0f0f0; color: var(--primary-color); }
+        .draw-btn.active { background: var(--primary-color); color: white; }
+
+        .canvas-container { 
+            flex: 1; width: 100%; min-height: 200px; position: relative; 
+            border: 2px dashed #ccc; border-radius: 10px; overflow: hidden; 
+            background-color: white; background-size: 20px 20px;
+        }
+        .canvas-container.bg-grid { background-image: linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px); }
+        .canvas-container.bg-lines { background-image: repeating-linear-gradient(0deg, transparent, transparent 29px, #e5e5e5 30px); background-size: 100% 30px;}
+        .canvas-container.bg-white { background-image: none; }
+        canvas { display: block; touch-action: none; position: absolute; top: 0; left: 0; z-index: 10; cursor: crosshair; }
+        .canvas-container.mode-move canvas { pointer-events: none; opacity: 0.6; } 
+
+        .img-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; overflow: hidden; }
+        .pasted-img-wrapper {
+            position: absolute; display: inline-block; cursor: grab; user-select: none;
+            border: 1px solid transparent;
+        }
+        .pasted-img-wrapper:hover { border: 1px dashed #999; }
+        .pasted-img-wrapper.selected { border: 1px solid var(--primary-color); }
+        .pasted-img-wrapper img { width: 100%; height: 100%; pointer-events: none; display: block;}
+        .resize-handle {
+            position: absolute; bottom: -5px; right: -5px; width: 12px; height: 12px;
+            background: var(--primary-color); cursor: nwse-resize; border-radius: 50%;
+            display: none;
+        }
+        .pasted-img-wrapper:hover .resize-handle, .pasted-img-wrapper.selected .resize-handle { display: block; }
+
+        /* --- Timer & Stopwatch --- */
         .timer-wrapper { text-align: center; width: 100%; }
         .timer-display { 
-            font-size: 4.5rem; 
-            font-weight: 700; 
-            font-variant-numeric: tabular-nums; 
-            margin: 10px 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 5px;
-            font-family: 'Courier New', Courier, monospace;
-            color: #333;
+            font-size: 4.5rem; font-weight: 700; font-variant-numeric: tabular-nums; 
+            margin: 10px 0; display: flex; justify-content: center; align-items: center; gap: 5px;
+            font-family: 'Courier New', Courier, monospace; color: #333;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
         }
         .timer-input { 
-            width: 110px; 
-            font-size: 4.5rem; 
-            text-align: center; 
-            border: none; 
-            background: transparent; 
-            color: inherit; 
-            font-family: inherit; 
-            font-weight: inherit;
-            border-bottom: 2px solid transparent;
-            transition: border 0.3s;
+            width: 110px; font-size: 4.5rem; text-align: center; border: none; background: transparent; 
+            color: inherit; font-family: inherit; font-weight: inherit; border-bottom: 2px solid transparent; transition: border 0.3s;
         }
         .timer-input:focus { border-bottom: 2px solid var(--primary-color); }
-        /* 移除 input type=number 的箭頭 */
         .timer-input::-webkit-outer-spin-button, .timer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
         .timer-controls { display: flex; gap: 15px; justify-content: center; align-items: center; margin-top: 15px;}
         .timer-btn { 
-            padding: 10px 20px; 
-            border: none; 
-            border-radius: 50px; 
-            cursor: pointer; 
-            background: var(--primary-color); 
-            color: white; 
-            font-size: 15px; 
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
-            transition: all 0.2s;
-            display: flex; align-items: center; gap: 5px;
+            padding: 10px 20px; border: none; border-radius: 50px; cursor: pointer; 
+            background: var(--primary-color); color: white; font-size: 15px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3); transition: all 0.2s; display: flex; align-items: center; gap: 5px;
         }
         .timer-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(74, 144, 226, 0.4); }
-        .timer-btn:active { transform: translateY(0); }
         .timer-btn.reset { background: #e0e0e0; color: #555; box-shadow: none; }
-        .timer-btn.reset:hover { background: #d0d0d0; }
-        
-        /* Draw */
-        .draw-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; }
-        .draw-tools { display: flex; gap: 10px; margin-bottom: 10px; background: #fff; padding: 8px 15px; border-radius: 30px; box-shadow: var(--shadow-sm); }
-        .color-pick { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s;}
-        .color-pick:hover { transform: scale(1.1); }
-        .color-pick.active { transform: scale(1.2); border-color: #333; }
-        .canvas-container { 
-            flex: 1;
-            width: 100%;
-            min-height: 200px;
-            position: relative; 
-            border: 2px dashed #ccc; 
-            border-radius: 10px;
-            overflow: hidden; 
-            background: white; 
-            cursor: crosshair;
-        }
-        canvas { display: block; touch-action: none; }
 
-        /* Randomizer */
-        .randomizer-area { width: 100%; text-align: center; display: flex; flex-direction: column; height: 100%; }
-        .random-result { 
-            font-size: 2.5rem; 
-            font-weight: 800; 
-            color: var(--primary-color); 
-            min-height: 60px; 
-            margin: 10px 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background: rgba(255,255,255,0.5);
-            border-radius: 10px;
-        }
-        textarea.names-input { 
-            width: 100%; 
-            flex: 1;
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            padding: 10px; 
-            resize: none; 
-            font-size: 14px;
-            background: rgba(255,255,255,0.8);
-        }
+        .random-result { font-size: 2.5rem; font-weight: 800; color: var(--primary-color); min-height: 60px; margin: 10px 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); border-radius: 10px; width: 100%; }
+        textarea.names-input { width: 100%; flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 10px; resize: none; font-size: 14px; background: rgba(255,255,255,0.8); }
 
-        /* Calendar */
-        .calendar-ctrl { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px; font-weight: bold; font-size: 1.2rem; color: var(--text-main); }
-        .cal-btn { cursor: pointer; padding: 5px 10px; color: var(--primary-color); border-radius: 5px; transition: background 0.2s;}
-        .cal-btn:hover { background: rgba(0,0,0,0.05); }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-size: 13px; width: 100%; }
-        .cal-header { font-weight: bold; padding: 8px 0; color: #888; }
-        .cal-day { padding: 8px; cursor: pointer; border-radius: 8px; transition: 0.2s; }
-        .cal-day:hover:not(.empty) { background: #eef2f5; }
-        .cal-day.today { background: var(--primary-color); color: white; font-weight: bold; box-shadow: 0 3px 8px rgba(74, 144, 226, 0.4); }
-
-        /* Scoreboard (Drag & Scroll Optimized) */
-        .score-container { 
-            display: flex; 
-            gap: 15px; 
-            overflow-x: auto; 
-            width: 100%;
-            padding: 10px 5px;
-            align-items: flex-start;
-        }
-        .score-container::-webkit-scrollbar { height: 8px; }
-        .score-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-
-        .score-team { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            background: #fff; 
-            padding: 15px; 
-            border-radius: 12px; 
-            min-width: 120px; 
-            position: relative; 
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-            border: 1px solid #eee;
-        }
+        /* --- Scoreboard --- */
+        .score-container { display: flex; gap: 15px; overflow-x: auto; width: 100%; padding: 10px 5px; align-items: flex-start; }
+        .score-team { display: flex; flex-direction: column; align-items: center; background: #fff; padding: 15px; border-radius: 12px; min-width: 120px; position: relative; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid #eee; }
         .score-num { font-size: 3rem; font-weight: 800; margin: 10px 0; color: var(--text-main); line-height: 1; }
-        .score-ctrl button { 
-            width: 32px; height: 32px; 
-            border-radius: 50%; border: none; 
-            background: #f0f0f0; color: #555;
-            cursor: pointer; font-weight: bold; font-size: 16px; margin: 0 3px; transition: 0.2s;
+        
+        /* 記分板按鈕美化 */
+        .score-actions { display: flex; gap: 10px; margin-top: 5px; }
+        .score-ctrl-btn { 
+            width: 32px; height: 32px; border-radius: 50%; border: none; 
+            background: #f0f0f0; color: #555; font-size: 18px; font-weight: bold;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
         }
-        .score-ctrl button:hover { background: var(--primary-color); color: white; transform: scale(1.1); }
-        .score-del { position: absolute; top: 5px; right: 8px; font-size: 12px; color: #ccc; cursor: pointer; padding: 2px;}
-        .score-del:hover { color: var(--accent-color); }
-        .add-team-btn { 
-            margin-top: 10px; font-size: 13px; cursor: pointer; 
-            color: var(--primary-color); border: 1px dashed var(--primary-color); 
-            padding: 8px 15px; border-radius: 20px; background: rgba(255,255,255,0.8); 
-            transition: 0.2s;
-        }
-        .add-team-btn:hover { background: var(--primary-color); color: white; }
-
-        /* 吉祥物 */
+        .score-ctrl-btn:hover { background: var(--primary-color); color: white; transform: scale(1.1); box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+        
         #mascot {
-            position: fixed;
-            bottom: 15px;
-            left: 20px;
-            width: 120px;
-            height: auto;
-            z-index: 150;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+            position: fixed; bottom: 15px; left: 20px; width: 120px; height: auto; z-index: 150;
+            transition: all 0.3s ease; cursor: pointer; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
         }
-        #mascot:hover {
-            filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 15px #ff00de);
-            transform: scale(1.05) rotate(-5deg);
-        }
-
-        /* 版權 */
+        #mascot:hover { filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 15px #ff00de); transform: scale(1.05) rotate(-5deg); }
         .copyright {
-            position: absolute;
-            bottom: 5px;
-            width: 100%;
-            text-align: center;
-            color: rgba(0, 0, 0, 0.4);
-            font-size: 11px;
-            z-index: 50;
-            font-weight: 600;
-            font-family: monospace;
+            position: absolute; bottom: 5px; width: 100%; text-align: center; color: rgba(0, 0, 0, 0.4);
+            font-size: 11px; z-index: 50; font-weight: 600; font-family: monospace;
         }
     </style>
 </head>
 <body>
 
     <div id="workspace"></div>
-    
-    <!-- 吉祥物 -->
     <img src="image/LiyuChillGuy.svg" alt="LiyuChillGuy" id="mascot" title="按我一下!">
 
     <!-- 背景選單 -->
@@ -453,323 +374,181 @@
     </div>
 
     <div class="toolbar-wrapper" id="toolbarWrapper">
-        <!-- 縮小按鈕 -->
         <div class="toggle-bar-btn" onclick="toggleToolbar()" title="縮小/展開工具列">
             <i class="fa-solid fa-chevron-down" id="toggleIcon"></i>
         </div>
 
         <div class="toolbar-container">
             <div class="tool-btn" id="bgBtn" title="左鍵換圖 / 右鍵選單">
-                <div class="tool-icon"><i class="fa-solid fa-image"></i></div>
-                <span class="tool-label">背景更換</span>
+                <div class="tool-icon"><i class="fa-solid fa-image"></i></div><span class="tool-label">背景</span>
             </div>
             <div class="tool-btn" onclick="createWidget('randomizer')">
-                <div class="tool-icon"><i class="fa-solid fa-shuffle"></i></div>
-                <span class="tool-label">隨機抽籤</span>
+                <div class="tool-icon"><i class="fa-solid fa-shuffle"></i></div><span class="tool-label">抽籤</span>
             </div>
             <div class="tool-btn" onclick="createWidget('text')">
-                <div class="tool-icon"><i class="fa-solid fa-font"></i></div>
-                <span class="tool-label">文字/公告</span>
+                <div class="tool-icon"><i class="fa-solid fa-font"></i></div><span class="tool-label">公告</span>
             </div>
             <div class="tool-btn" onclick="createWidget('traffic')">
-                <div class="tool-icon"><i class="fa-solid fa-traffic-light"></i></div>
-                <span class="tool-label">紅綠燈</span>
+                <div class="tool-icon"><i class="fa-solid fa-traffic-light"></i></div><span class="tool-label">紅綠燈</span>
             </div>
             <div class="tool-btn" onclick="createWidget('timer')">
-                <div class="tool-icon"><i class="fa-solid fa-hourglass-half"></i></div>
-                <span class="tool-label">倒數計時</span>
+                <div class="tool-icon"><i class="fa-solid fa-hourglass-half"></i></div><span class="tool-label">倒數</span>
             </div>
             <div class="tool-btn" onclick="createWidget('stopwatch')">
-                <div class="tool-icon"><i class="fa-solid fa-stopwatch"></i></div>
-                <span class="tool-label">碼錶</span>
+                <div class="tool-icon"><i class="fa-solid fa-stopwatch"></i></div><span class="tool-label">碼錶</span>
             </div>
             <div class="tool-btn" onclick="createWidget('clock')">
-                <div class="tool-icon"><i class="fa-regular fa-clock"></i></div>
-                <span class="tool-label">時鐘</span>
+                <div class="tool-icon"><i class="fa-regular fa-clock"></i></div><span class="tool-label">時鐘</span>
             </div>
             <div class="tool-btn" onclick="createWidget('calendar')">
-                <div class="tool-icon"><i class="fa-solid fa-calendar-days"></i></div>
-                <span class="tool-label">日曆</span>
+                <div class="tool-icon"><i class="fa-solid fa-calendar-days"></i></div><span class="tool-label">日曆</span>
             </div>
             <div class="tool-btn" onclick="createWidget('scoreboard')">
-                <div class="tool-icon"><i class="fa-solid fa-clipboard-list"></i></div>
-                <span class="tool-label">記分板</span>
+                <div class="tool-icon"><i class="fa-solid fa-clipboard-list"></i></div><span class="tool-label">記分</span>
             </div>
             <div class="tool-btn" onclick="createWidget('dice')">
-                <div class="tool-icon"><i class="fa-solid fa-dice"></i></div>
-                <span class="tool-label">骰子</span>
+                <div class="tool-icon"><i class="fa-solid fa-dice"></i></div><span class="tool-label">骰子</span>
             </div>
             <div class="tool-btn" onclick="createWidget('draw')">
-                <div class="tool-icon"><i class="fa-solid fa-pen-nib"></i></div>
-                <span class="tool-label">畫板</span>
+                <div class="tool-icon"><i class="fa-solid fa-pen-nib"></i></div><span class="tool-label">畫板</span>
             </div>
-            <!-- 一鍵清除 -->
             <div class="tool-btn danger" onclick="clearAllWidgets()" title="清除所有視窗">
-                <div class="tool-icon" style="color: #ff5f57;"><i class="fa-solid fa-trash-can"></i></div>
-                <span class="tool-label">清除全部</span>
+                <div class="tool-icon" style="color: #ff5f57;"><i class="fa-solid fa-trash-can"></i></div><span class="tool-label">清除</span>
             </div>
         </div>
     </div>
 
-    <div class="copyright">
-        Copyright © Liyuchiutiger Gongminshen
-    </div>
+    <div class="copyright">Copyright © Liyuchiutiger Gongminshen</div>
 
     <script>
         const workspace = document.getElementById('workspace');
 
-        // --- 工具列縮放功能 ---
+        // --- 工具列功能 ---
         function toggleToolbar() {
             const wrapper = document.getElementById('toolbarWrapper');
-            const icon = document.getElementById('toggleIcon');
             wrapper.classList.toggle('minimized');
-            
-            if (wrapper.classList.contains('minimized')) {
-                icon.className = 'fa-solid fa-chevron-up';
-            } else {
-                icon.className = 'fa-solid fa-chevron-down';
-            }
+            document.getElementById('toggleIcon').className = wrapper.classList.contains('minimized') ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
         }
 
-        // --- 清除全部視窗 ---
         function clearAllWidgets() {
             if(confirm('確定要清除所有小工具嗎？')) {
-                const widgets = document.querySelectorAll('.widget');
-                widgets.forEach(w => {
-                    w.style.transform = 'scale(0.8) opacity(0)';
-                    setTimeout(() => w.remove(), 200);
-                });
+                document.querySelectorAll('.widget').forEach(w => w.remove());
             }
         }
 
         // --- 音效系統 ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
+            osc.connect(gain); gain.connect(audioCtx.destination);
             const t = audioCtx.currentTime;
             
             if (type === 'click') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, t);
-                osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-                gain.gain.setValueAtTime(0.2, t);
-                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-                osc.start(t);
-                osc.stop(t + 0.1);
-            } 
-            else if (type === 'pop') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(400, t);
-                osc.frequency.linearRampToValueAtTime(600, t + 0.1);
-                gain.gain.setValueAtTime(0.2, t);
-                gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
-                osc.start(t);
-                osc.stop(t + 0.2);
-            }
-            else if (type === 'beep') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, t);
-                gain.gain.setValueAtTime(0.1, t);
-                gain.gain.linearRampToValueAtTime(0.01, t + 0.1);
-                osc.start(t);
-                osc.stop(t + 0.1);
-            }
-            else if (type === 'alarm') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(440, t);
-                osc.frequency.linearRampToValueAtTime(880, t + 0.5);
-                gain.gain.setValueAtTime(0.3, t);
-                gain.gain.linearRampToValueAtTime(0.01, t + 1);
-                osc.start(t);
-                osc.stop(t + 1);
-            }
-            else if (type === 'drum') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(100, t);
-                gain.gain.setValueAtTime(0.1, t);
-                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
-                osc.start(t);
-                osc.stop(t + 0.05);
-            }
-            else if (type === 'tada') {
-                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, t); osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+                gain.gain.setValueAtTime(0.2, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                osc.start(t); osc.stop(t + 0.1);
+            } else if (type === 'pop') {
+                osc.type = 'triangle'; osc.frequency.linearRampToValueAtTime(600, t + 0.1);
+                gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
+                osc.start(t); osc.stop(t + 0.2);
+            } else if (type === 'tada') {
+                [523, 659, 783, 1046].forEach((f, i) => {
                     setTimeout(() => {
-                        const o = audioCtx.createOscillator();
-                        const g = audioCtx.createGain();
-                        o.connect(g);
-                        g.connect(audioCtx.destination);
-                        o.type = 'sine';
-                        o.frequency.value = freq;
-                        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                        o.connect(g); g.connect(audioCtx.destination);
+                        o.frequency.value = f; g.gain.setValueAtTime(0.1, audioCtx.currentTime);
                         g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-                        o.start(audioCtx.currentTime);
-                        o.stop(audioCtx.currentTime + 0.5);
+                        o.start(audioCtx.currentTime); o.stop(audioCtx.currentTime + 0.5);
                     }, i * 100);
                 });
             }
         }
 
-        // --- 背景邏輯 ---
+        // --- 背景功能 ---
         const bgBtn = document.getElementById('bgBtn');
         const bgMenu = document.getElementById('bgMenu');
-        let currentBgIndex = 1;
-
-        bgBtn.addEventListener('click', (e) => {
-            currentBgIndex = (currentBgIndex % 5) + 1;
-            setBg('image', currentBgIndex);
-            bgMenu.classList.remove('show');
-        });
-
+        bgBtn.addEventListener('click', () => { setBg('image', (window.bgIdx = (window.bgIdx || 1) % 5 + 1)); });
         bgBtn.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            const rect = bgBtn.getBoundingClientRect();
-            bgMenu.style.left = rect.left + 'px';
-            bgMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px'; // 向上彈出
+            e.preventDefault(); bgMenu.style.left = bgBtn.getBoundingClientRect().left + 'px';
+            bgMenu.style.bottom = (window.innerHeight - bgBtn.getBoundingClientRect().top + 10) + 'px';
             bgMenu.classList.add('show');
         });
-
-        document.addEventListener('click', (e) => {
-            if(!bgBtn.contains(e.target) && !bgMenu.contains(e.target)) {
-                bgMenu.classList.remove('show');
-            }
-        });
-
-        function setBg(type, value) {
-            if(type === 'image') {
-                document.body.style.backgroundImage = `url('background/background00${value}.png')`;
-                document.body.style.backgroundColor = '#eef2f5';
-                currentBgIndex = value;
-            } else {
-                document.body.style.backgroundImage = 'none';
-                document.body.style.backgroundColor = value;
-            }
+        document.addEventListener('click', (e) => { if(!bgBtn.contains(e.target) && !bgMenu.contains(e.target)) bgMenu.classList.remove('show'); });
+        function setBg(type, val) {
+            if(type === 'image') { document.body.style.backgroundImage = `url('background/background00${val}.png')`; window.bgIdx = val; }
+            else { document.body.style.backgroundImage = 'none'; document.body.style.backgroundColor = val; }
             bgMenu.classList.remove('show');
         }
 
         // --- Widget Factory ---
-        // 標題對應表
-        const titles = {
-            'randomizer': '隨機抽籤',
-            'text': '文字公告',
-            'traffic': '紅綠燈',
-            'timer': '倒數計時',
-            'stopwatch': '碼錶',
-            'clock': '時鐘',
-            'calendar': '日曆',
-            'scoreboard': '記分板',
-            'dice': '擲骰子',
-            'draw': '畫板'
-        };
+        const titles = { 'randomizer': '隨機抽籤', 'text': '文字公告', 'traffic': '紅綠燈', 'timer': '倒數計時', 'stopwatch': '碼錶', 'clock': '時鐘', 'calendar': '日曆', 'scoreboard': '記分板', 'dice': '擲骰子', 'draw': '畫板' };
 
         function createWidget(type) {
             const widget = document.createElement('div');
             widget.className = 'widget';
+            widget.style.left = Math.max(50, Math.random()*(window.innerWidth-400)) + 'px';
+            widget.style.top = Math.max(50, Math.random()*(window.innerHeight-500)) + 'px';
             
-            // 隨機位置，稍微置中
-            const randomX = Math.max(50, Math.random() * (window.innerWidth - 400));
-            const randomY = Math.max(50, Math.random() * (window.innerHeight - 500));
-            widget.style.left = `${randomX}px`;
-            widget.style.top = `${randomY}px`;
+            let extraCtrl = '';
+            if(type === 'traffic') extraCtrl = `<div class="ctrl-btn" onclick="toggleTrafficText(this)" title="隱藏文字"><i class="fa-solid fa-eye"></i></div>`;
 
-            const header = document.createElement('div');
-            header.className = 'widget-header';
-            
-            let extraControls = '';
-            if(type === 'traffic') {
-                extraControls = `<div class="ctrl-btn" onclick="toggleTrafficText(this)" title="顯示/隱藏文字"><i class="fa-solid fa-eye"></i></div>`;
-            }
+            widget.innerHTML = `
+                <div class="widget-header">
+                    <span class="widget-title">${titles[type] || type}</span>
+                    <div class="header-controls">${extraCtrl}<div class="close-btn ctrl-btn" onclick="this.closest('.widget').remove()"><i class="fa-solid fa-xmark"></i></div></div>
+                </div>
+                <div class="widget-content"></div>`;
 
-            header.innerHTML = `
-                <span class="widget-title">${titles[type] || type}</span>
-                <div class="header-controls">
-                    ${extraControls}
-                    <div class="close-btn ctrl-btn" onclick="this.closest('.widget').remove()" title="關閉"><i class="fa-solid fa-xmark"></i></div>
-                </div>`;
-            
-            widget.appendChild(header);
+            const content = widget.querySelector('.widget-content');
+            initWidgetContent(type, content, widget);
+            workspace.appendChild(widget);
+            makeDraggable(widget);
+        }
 
-            const content = document.createElement('div');
-            content.className = 'widget-content';
-
-            // --- 內容生成 ---
+        function initWidgetContent(type, content, widget) {
             if (type === 'clock') {
-                content.innerHTML = `<div style="font-size:3.8rem; font-weight:800; color:var(--text-main); line-height:1;" class="clock-display">00:00</div>
+                content.innerHTML = `<div style="font-size:3.5rem; font-weight:800; color:var(--text-main); line-height:1; font-family:monospace;" class="clock-display">00:00:00</div>
                                      <div style="font-size:1.2rem; color:#7f8c8d; margin-top:5px;" class="date-display">...</div>`;
-                startClock(content);
-                widget.style.width = "300px"; widget.style.height = "auto";
+                startClock(content); widget.style.width = "340px";
             } 
             else if (type === 'traffic') {
                 content.innerHTML = `
-                    <div class="traffic-container">
-                        <div class="traffic-row">
-                            <div class="light red" style="background:#ff5f57" onclick="toggleLight(this)"></div>
-                            <input type="text" class="traffic-input" placeholder="禁止 / 安靜">
-                        </div>
-                        <div class="traffic-row">
-                            <div class="light yellow" style="background:#ffbd2e" onclick="toggleLight(this)"></div>
-                            <input type="text" class="traffic-input" placeholder="注意 / 輕聲">
-                        </div>
-                        <div class="traffic-row">
-                            <div class="light green" style="background:#27c93f" onclick="toggleLight(this)"></div>
-                            <input type="text" class="traffic-input" placeholder="開始 / 討論">
-                        </div>
-                    </div>
-                    <button class="add-light-btn" onclick="addCustomLight(this)">+ 新增自訂燈號</button>
-                `;
+                    <div class="traffic-container" id="traffic-${Date.now()}"></div>
+                    <button class="add-light-btn" onclick="addTrafficRow(this)">+ 新增燈號</button>`;
+                addTrafficRow(content.querySelector('.add-light-btn'), '#ff5f57', '禁止 / 安靜');
+                addTrafficRow(content.querySelector('.add-light-btn'), '#ffbd2e', '注意 / 輕聲');
+                addTrafficRow(content.querySelector('.add-light-btn'), '#27c93f', '開始 / 討論');
+                widget.style.width = "280px";
             } 
             else if (type === 'text') {
                 content.innerHTML = `
                     <div class="text-toolbar">
-                        <button class="text-btn" onclick="formatText(this, 'bold')" title="粗體"><i class="fa-solid fa-bold"></i></button>
-                        <button class="text-btn" onclick="formatText(this, 'italic')" title="斜體"><i class="fa-solid fa-italic"></i></button>
-                        <button class="text-btn" onclick="formatText(this, 'underline')" title="底線"><i class="fa-solid fa-underline"></i></button>
-                        <button class="text-btn" onclick="formatText(this, 'insertOrderedList')" title="編號"><i class="fa-solid fa-list-ol"></i></button>
-                        <select class="text-btn" onchange="formatText(this, 'fontSize', this.value)" style="width:auto; padding:0 5px;">
-                            <option value="3">字號</option><option value="5">大</option><option value="7">特大</option>
+                        <select class="text-select" onchange="formatText(this, 'fontName', this.value)" style="width: 80px;">
+                            <option value="Microsoft JhengHei">正黑體</option>
+                            <option value="DFKai-SB">標楷體</option>
+                            <option value="sans-serif">黑體</option>
+                            <option value="serif">明體</option>
+                            <option value="Comic Sans MS">卡漫</option>
                         </select>
-                        <div style="border-left:1px solid #ddd; margin:0 5px; height:20px; align-self:center;"></div>
+                        <select class="text-select" onchange="applyFontSize(this, this.value)" style="width: 60px;">
+                            <option value="3">字號</option>
+                            ${[12,14,16,18,20,24,28,32,36,48,60,72].map(s=>`<option value="${s}">${s}px</option>`).join('')}
+                        </select>
+                        <button class="text-btn" onclick="formatText(this, 'bold')"><i class="fa-solid fa-bold"></i></button>
+                        <button class="text-btn" onclick="formatText(this, 'italic')"><i class="fa-solid fa-italic"></i></button>
+                        <button class="text-btn" onclick="formatText(this, 'underline')"><i class="fa-solid fa-underline"></i></button>
+                        <button class="text-btn" onclick="formatText(this, 'insertOrderedList')"><i class="fa-solid fa-list-ol"></i></button>
+                        <div style="width:1px; height:20px; background:#ddd; margin:0 5px;"></div>
                         <div class="bg-color-picker" style="background:#fff" onclick="setTextBg(this, '#fff')"></div>
                         <div class="bg-color-picker" style="background:#fff740" onclick="setTextBg(this, '#fff740')"></div>
-                        <div class="bg-color-picker" style="background:#ffccf9" onclick="setTextBg(this, '#ffccf9')"></div>
                         <div class="bg-color-picker" style="background:#ccf9ff" onclick="setTextBg(this, '#ccf9ff')"></div>
                     </div>
-                    <div class="text-editor" contenteditable="true">點擊此處開始輸入...</div>
-                `;
-                widget.style.width = "350px"; widget.style.height = "250px";
+                    <!-- 使用 placeholder 屬性 -->
+                    <div class="text-editor" contenteditable="true" placeholder="點擊此處開始輸入..."></div>`;
+                widget.style.width = "400px"; widget.style.height = "300px";
             } 
-            else if (type === 'dice') {
-                content.innerHTML = `<div style="font-size:6rem; cursor:pointer; color:var(--primary-color); transition:0.3s;" onclick="rollDice(this)" class="dice-icon"><i class="fa-solid fa-dice-one"></i></div>`;
-            }
-            else if (type === 'timer') {
-                content.innerHTML = `
-                    <div class="timer-wrapper">
-                        <div class="timer-display">
-                             <input type="number" value="05" class="timer-input min" onchange="padTime(this)"><span>:</span>
-                             <input type="number" value="00" class="timer-input sec" onchange="padTime(this)">
-                        </div>
-                        <div class="timer-controls">
-                            <button class="timer-btn" onclick="timerLogic(this, 'start')"><i class="fa-solid fa-play"></i> 開始</button>
-                            <button class="timer-btn reset" onclick="timerLogic(this, 'reset')"><i class="fa-solid fa-rotate-right"></i></button>
-                        </div>
-                    </div>`;
-                widget.style.width = "320px";
-            }
-            else if (type === 'stopwatch') {
-                content.innerHTML = `
-                    <div class="stopwatch-display" style="font-size:3.5rem; font-family:'Courier New', monospace; font-weight:bold; color:#333; margin:10px 0;">00:00.00</div>
-                    <div class="timer-controls">
-                        <button class="timer-btn" onclick="stopwatchLogic(this, 'toggle')"><i class="fa-solid fa-play"></i> 開始</button>
-                        <button class="timer-btn reset" onclick="stopwatchLogic(this, 'reset')"><i class="fa-solid fa-rotate-right"></i></button>
-                    </div>
-                `;
-                widget.style.width = "320px";
-            }
             else if (type === 'draw') {
                 content.innerHTML = `
                     <div class="draw-wrapper">
@@ -777,431 +556,415 @@
                             <div class="color-pick active" style="background:black" onclick="setPen(this, 'black')"></div>
                             <div class="color-pick" style="background:#ff5f57" onclick="setPen(this, '#ff5f57')"></div>
                             <div class="color-pick" style="background:#4a90e2" onclick="setPen(this, '#4a90e2')"></div>
-                            <div class="color-pick" style="background:#27c93f" onclick="setPen(this, '#27c93f')"></div>
-                            <div class="color-pick" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#666;" onclick="setPen(this, 'eraser')" title="橡皮擦"><i class="fa-solid fa-eraser"></i></div>
-                            <div class="color-pick" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#666;" onclick="clearCanvas(this)" title="清空"><i class="fa-solid fa-trash"></i></div>
+                            <div class="tool-separator"></div>
+                            <div class="draw-btn" onclick="setPen(this, 'eraser')" title="橡皮擦"><i class="fa-solid fa-eraser"></i></div>
+                            <div class="draw-btn" onclick="clearCanvas(this)" title="清空"><i class="fa-solid fa-trash"></i></div>
+                            <div class="tool-separator"></div>
+                            <div class="draw-btn" id="moveModeBtn" onclick="toggleMoveMode(this)" title="移動/縮放圖片"><i class="fa-solid fa-up-down-left-right"></i></div>
+                            <div class="tool-separator"></div>
+                            <div class="draw-btn" onclick="setCanvasBg(this, 'bg-white')" title="空白"><i class="fa-regular fa-square"></i></div>
+                            <div class="draw-btn" onclick="setCanvasBg(this, 'bg-grid')" title="方格"><i class="fa-solid fa-border-all"></i></div>
+                            <div class="draw-btn" onclick="setCanvasBg(this, 'bg-lines')" title="橫線"><i class="fa-solid fa-bars"></i></div>
                         </div>
-                        <div class="canvas-container"><canvas></canvas></div>
+                        <div class="canvas-container bg-white" tabindex="0">
+                            <div class="img-layer"></div>
+                            <canvas></canvas>
+                        </div>
                     </div>`;
-                widget.style.width = "400px"; widget.style.height = "350px";
+                widget.style.width = "500px"; widget.style.height = "400px";
                 setTimeout(() => initDraw(content), 100);
             }
-            else if (type === 'randomizer') {
+            else if (type === 'dice') content.innerHTML = `<div style="font-size:6rem; cursor:pointer; color:var(--primary-color);" onclick="rollDice(this)"><i class="fa-solid fa-dice-one"></i></div>`;
+            else if (type === 'timer') {
                 content.innerHTML = `
-                    <div class="randomizer-area">
-                        <div class="random-result"><i class="fa-solid fa-question" style="color:#ccc; font-size:2rem;"></i></div>
-                        <textarea class="names-input" placeholder="在此輸入名單，每行一個名字..." rows="5"></textarea>
-                        <button class="timer-btn" style="margin-top:10px; width:100%; justify-content:center;" onclick="runRandomizer(this)"><i class="fa-solid fa-shuffle"></i> 開始抽籤</button>
+                    <div class="timer-wrapper">
+                        <div class="timer-display"><input type="number" value="05" class="timer-input min" onchange="padTime(this)"><span>:</span><input type="number" value="00" class="timer-input sec" onchange="padTime(this)"></div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" onclick="timerLogic(this)"><i class="fa-solid fa-play"></i> 開始</button>
+                            <button class="timer-btn reset" onclick="timerReset(this)"><i class="fa-solid fa-rotate-right"></i></button>
+                        </div>
                     </div>`;
-                widget.style.width = "300px"; widget.style.height = "350px";
+                widget.style.width = "320px";
+            }
+            else if (type === 'stopwatch') {
+                content.innerHTML = `<div class="stopwatch-display" style="font-size:3.5rem; font-family:monospace; margin:10px 0;">00:00.00</div>
+                    <div class="timer-controls"><button class="timer-btn" onclick="swLogic(this)"><i class="fa-solid fa-play"></i> 開始</button><button class="timer-btn reset" onclick="swReset(this)"><i class="fa-solid fa-rotate-right"></i></button></div>`;
+                widget.style.width = "320px";
+            }
+            else if (type === 'randomizer') {
+                content.innerHTML = `<div class="randomizer-area"><div class="random-result"><i class="fa-solid fa-question" style="color:#ccc;"></i></div><textarea class="names-input" placeholder="輸入名單，每行一個..." rows="5"></textarea><button class="timer-btn" style="width:100%; justify-content:center; margin-top:10px;" onclick="runRandomizer(this)">開始抽籤</button></div>`;
+                widget.style.width = "300px";
             }
             else if (type === 'calendar') {
                 content.innerHTML = `<div class="cal-container" style="width:100%;"></div>`;
-                initCalendar(content.querySelector('.cal-container'));
-                widget.style.width = "300px";
+                initCalendar(content.querySelector('.cal-container')); widget.style.width = "300px";
             }
             else if (type === 'scoreboard') {
-                content.innerHTML = `
-                    <div class="score-container">
-                        ${createTeamHTML('第一組')}
-                        ${createTeamHTML('第二組')}
-                        ${createTeamHTML('第三組')}
-                    </div>
-                    <button class="add-team-btn" onclick="addTeam(this)">+ 新增組別</button>
-                `;
-                widget.style.width = "450px"; // 預設寬一點
-                widget.style.height = "280px";
+                content.innerHTML = `<div class="score-container">${createTeamHTML('第一組')}${createTeamHTML('第二組')}</div><button class="add-light-btn" onclick="addTeam(this)">+ 新增組別</button>`;
+                widget.style.width = "400px";
             }
-
-            widget.appendChild(content);
-            workspace.appendChild(widget);
-            makeDraggable(widget);
         }
 
-        // --- 功能實作 ---
+        // --- 拖曳視窗核心 (修復縮放衝突) ---
+        function makeDraggable(el) {
+            let pos1=0, pos2=0, pos3=0, pos4=0;
+            
+            el.onmousedown = function(e) {
+                // 1. 排除輸入框、按鈕等元素
+                if (['INPUT','TEXTAREA','BUTTON','SELECT','I','CANVAS'].includes(e.target.tagName) || 
+                    e.target.classList.contains('light') || 
+                    e.target.classList.contains('pasted-img-wrapper') ||
+                    e.target.isContentEditable) return;
+                
+                // 2. 檢測是否點擊在右下角的縮放區域 (20x20像素)
+                const rect = el.getBoundingClientRect();
+                const isResizeHandle = (e.clientX > rect.right - 20 && e.clientY > rect.bottom - 20);
+                
+                if (isResizeHandle) {
+                    return; // 如果是點擊縮放區，不執行拖曳，讓瀏覽器執行原生縮放
+                }
 
-        function makeDraggable(element) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            const header = element.querySelector('.widget-header');
-            header.onmousedown = dragMouseDown;
-
-            function dragMouseDown(e) {
                 e.preventDefault();
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
+                pos3 = e.clientX; pos4 = e.clientY;
+                document.onmouseup = closeDrag;
                 document.onmousemove = elementDrag;
                 
-                // Bring to front
                 document.querySelectorAll('.widget').forEach(w => w.style.zIndex = 10);
-                element.style.zIndex = 100;
-            }
+                el.style.zIndex = 100;
+            };
+
             function elementDrag(e) {
                 e.preventDefault();
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                element.style.top = (element.offsetTop - pos2) + "px";
-                element.style.left = (element.offsetLeft - pos1) + "px";
+                pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY;
+                pos3 = e.clientX; pos4 = e.clientY;
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
             }
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-            }
+            function closeDrag() { document.onmouseup = null; document.onmousemove = null; }
         }
 
-        // 1. Traffic Light
+        // --- Traffic Light ---
         function toggleTrafficText(btn) {
             const container = btn.closest('.widget').querySelector('.traffic-container');
-            const icon = btn.querySelector('i');
-            if (container.classList.contains('traffic-hide-text')) {
-                container.classList.remove('traffic-hide-text');
-                icon.className = 'fa-solid fa-eye';
-                icon.parentElement.title = "隱藏文字";
-            } else {
-                container.classList.add('traffic-hide-text');
-                icon.className = 'fa-solid fa-eye-slash';
-                icon.parentElement.title = "顯示文字";
-            }
+            const isHidden = container.classList.toggle('traffic-hide-text');
+            btn.innerHTML = isHidden ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>';
+            btn.title = isHidden ? "顯示文字" : "隱藏文字";
         }
         function toggleLight(el) {
-            const parent = el.closest('.traffic-container');
-            const allLights = parent.querySelectorAll('.light');
-            const isActive = el.classList.contains('active');
-            allLights.forEach(l => l.classList.remove('active'));
-            if(!isActive) {
-                el.classList.add('active');
-                playSound('click');
-            }
+            const row = el.parentElement;
+            row.parentElement.querySelectorAll('.light').forEach(l => l.classList.remove('active'));
+            el.classList.add('active'); playSound('click');
         }
-        function addCustomLight(btn) {
+        function addTrafficRow(btn, color=null, text='') {
             const container = btn.previousElementSibling;
             const row = document.createElement('div');
             row.className = 'traffic-row';
+            row.draggable = true; 
+            
             const colors = ['#9b59b6', '#34495e', '#e67e22', '#1abc9c', '#ff00de'];
-            const color = colors[Math.floor(Math.random()*colors.length)];
+            const finalColor = color || colors[Math.floor(Math.random()*colors.length)];
+            
             row.innerHTML = `
-                <div class="light" style="background:${color}" onclick="toggleLight(this)"></div>
-                <input type="text" class="traffic-input" placeholder="自訂事項">
+                <div class="drag-handle" title="拖曳排序"><i class="fa-solid fa-grip-vertical"></i></div>
+                <div class="light" style="background:${finalColor}" onclick="toggleLight(this)"></div>
+                <input type="text" class="traffic-input" value="${text}" placeholder="事項">
+                <div class="traffic-del" onclick="this.parentElement.remove()" title="刪除"><i class="fa-solid fa-trash-can"></i></div>
             `;
+            
+            row.addEventListener('dragstart', e => { row.classList.add('dragging'); });
+            row.addEventListener('dragend', e => { row.classList.remove('dragging'); });
+            container.addEventListener('dragover', e => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(container, e.clientY);
+                const dragging = document.querySelector('.dragging');
+                if (afterElement == null) container.appendChild(dragging);
+                else container.insertBefore(dragging, afterElement);
+            });
+
             container.appendChild(row);
         }
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.traffic-row:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+                else return closest;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
 
-        // 2. Text Editor
+        // --- Text Editor ---
         function formatText(btn, cmd, val=null) {
             document.execCommand(cmd, false, val);
             btn.closest('.widget-content').querySelector('.text-editor').focus();
         }
+        function applyFontSize(select, size) {
+            const sel = window.getSelection();
+            if (sel.rangeCount) {
+                const span = document.createElement("span");
+                span.style.fontSize = size + "px";
+                span.innerHTML = sel.toString();
+                const range = sel.getRangeAt(0);
+                range.deleteContents();
+                range.insertNode(span);
+            }
+        }
         function setTextBg(btn, color) {
-            const content = btn.closest('.widget-content');
-            content.querySelector('.text-editor').style.background = color;
-            if(color !== '#fff') content.querySelector('.text-editor').style.borderRadius = "8px";
+            const ed = btn.closest('.widget-content').querySelector('.text-editor');
+            ed.style.background = color; ed.style.borderRadius = color==='#fff'?'0':'8px';
         }
 
-        // 3. Dice
-        function rollDice(el) {
-            const icons = ['fa-dice-one', 'fa-dice-two', 'fa-dice-three', 'fa-dice-four', 'fa-dice-five', 'fa-dice-six'];
-            let count = 0;
-            playSound('click');
-            el.style.transform = 'rotate(360deg) scale(1.2)';
-            const interval = setInterval(() => {
-                el.innerHTML = `<i class="fa-solid ${icons[Math.floor(Math.random()*6)]}"></i>`;
-                count++;
-                if(count%3 === 0) playSound('click'); 
-                if(count > 12) {
-                    clearInterval(interval);
-                    el.style.transform = 'rotate(0deg) scale(1)';
-                    playSound('pop');
-                }
-            }, 50);
-        }
-
-        // 4. Timer
-        function padTime(input) {
-            let val = parseInt(input.value);
-            if(isNaN(val) || val < 0) val = 0;
-            input.value = val.toString().padStart(2,'0');
-        }
-        function timerLogic(btn, action) {
-            const wrapper = btn.closest('.timer-wrapper');
-            const minIn = wrapper.querySelector('.min');
-            const secIn = wrapper.querySelector('.sec');
-            const display = wrapper.querySelector('.timer-display');
-
-            if (action === 'reset') {
-                clearInterval(wrapper.timerId);
-                wrapper.timerId = null;
-                wrapper.querySelector('button i').className = 'fa-solid fa-play';
-                wrapper.querySelector('button').innerHTML = '<i class="fa-solid fa-play"></i> 開始';
-                minIn.disabled = false; secIn.disabled = false;
-                display.style.color = '#333';
-                playSound('click');
-                return;
-            }
-
-            if (wrapper.timerId) {
-                // Pause
-                clearInterval(wrapper.timerId);
-                wrapper.timerId = null;
-                btn.innerHTML = '<i class="fa-solid fa-play"></i> 繼續';
-                minIn.disabled = false; secIn.disabled = false;
-            } else {
-                // Start
-                let total = parseInt(minIn.value)*60 + parseInt(secIn.value);
-                if(total <= 0) return;
-                minIn.disabled = true; secIn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-pause"></i> 暫停';
-                playSound('click');
-
-                wrapper.timerId = setInterval(() => {
-                    if (total <= 0) {
-                        clearInterval(wrapper.timerId);
-                        wrapper.timerId = null;
-                        btn.innerHTML = '<i class="fa-solid fa-play"></i> 開始';
-                        display.style.color = 'var(--accent-color)';
-                        minIn.disabled = false; secIn.disabled = false;
-                        playSound('alarm');
-                        return;
-                    }
-                    total--;
-                    if(total <= 3 && total >= 0) playSound('beep'); 
-                    minIn.value = Math.floor(total/60).toString().padStart(2,'0');
-                    secIn.value = (total%60).toString().padStart(2,'0');
-                }, 1000);
-            }
-        }
-
-        // 5. Stopwatch
-        function stopwatchLogic(btn, action) {
-            const parent = btn.closest('.widget-content');
-            const display = parent.querySelector('.stopwatch-display');
-            if(!parent.swData) parent.swData = { start: 0, elapsed: 0, id: null };
-            const d = parent.swData;
-
-            playSound('click');
-
-            if(action === 'toggle') {
-                if(d.id) {
-                    // Pause
-                    clearInterval(d.id); d.id = null; 
-                    btn.innerHTML = '<i class="fa-solid fa-play"></i> 繼續';
-                } else {
-                    // Start
-                    d.start = Date.now() - d.elapsed;
-                    d.id = setInterval(() => {
-                        d.elapsed = Date.now() - d.start;
-                        const min = Math.floor(d.elapsed/60000);
-                        const sec = Math.floor((d.elapsed%60000)/1000);
-                        const ms = Math.floor((d.elapsed%1000)/10);
-                        display.innerText = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}.${ms.toString().padStart(2,'0')}`;
-                    }, 10);
-                    btn.innerHTML = '<i class="fa-solid fa-pause"></i> 暫停';
-                }
-            } else {
-                // Reset
-                clearInterval(d.id); d.id = null; d.elapsed = 0;
-                display.innerText = "00:00.00";
-                parent.querySelector('.timer-btn').innerHTML = '<i class="fa-solid fa-play"></i> 開始';
-            }
-        }
-
-        // 6. Draw
+        // --- Draw Board V2 ---
         function initDraw(content) {
             const container = content.querySelector('.canvas-container');
             const canvas = container.querySelector('canvas');
+            const imgLayer = container.querySelector('.img-layer');
             const ctx = canvas.getContext('2d');
+            let isMoveMode = false;
             
-            function resize() {
-                // Save content
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = canvas.width;
-                tempCanvas.height = canvas.height;
-                tempCanvas.getContext('2d').drawImage(canvas, 0, 0);
-                
-                // Resize
-                canvas.width = container.clientWidth;
-                canvas.height = container.clientHeight;
-                
-                // Restore content
-                ctx.drawImage(tempCanvas, 0, 0);
-            }
+            const resize = () => {
+                const temp = document.createElement('canvas'); temp.width=canvas.width; temp.height=canvas.height;
+                temp.getContext('2d').drawImage(canvas,0,0);
+                canvas.width = container.clientWidth; canvas.height = container.clientHeight;
+                ctx.drawImage(temp,0,0);
+            };
             new ResizeObserver(resize).observe(container);
-            
-            let painting = false;
-            let color = 'black';
-            let isEraser = false;
 
+            let painting = false, color = 'black', isEraser = false;
             window.setPen = (el, c) => {
-                el.parentElement.querySelectorAll('.color-pick').forEach(x=>x.classList.remove('active'));
+                el.parentElement.querySelectorAll('.color-pick, .draw-btn').forEach(x=>x.classList.remove('active'));
                 el.classList.add('active');
+                
+                isMoveMode = false;
+                container.classList.remove('mode-move');
+                content.querySelector('#moveModeBtn').classList.remove('active');
+                
                 isEraser = (c === 'eraser');
                 if(!isEraser) color = c;
             };
             
-            window.clearCanvas = (el) => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                playSound('click');
+            window.clearCanvas = () => { ctx.clearRect(0,0,canvas.width,canvas.height); imgLayer.innerHTML=''; playSound('click'); };
+            window.setCanvasBg = (btn, bgClass) => {
+                container.classList.remove('bg-white','bg-grid','bg-lines');
+                container.classList.add(bgClass);
+            };
+            window.toggleMoveMode = (btn) => {
+                isMoveMode = !isMoveMode;
+                btn.classList.toggle('active', isMoveMode);
+                container.classList.toggle('mode-move', isMoveMode);
+                if(isMoveMode) content.querySelectorAll('.color-pick, .draw-btn[onclick*="setPen"]').forEach(x=>x.classList.remove('active'));
             };
 
-            function getPos(e) {
+            const getPos = (e) => {
                 const rect = canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: clientX - rect.left, y: clientY - rect.top };
-            }
-
-            function start(e) {
-                if(e.target !== canvas) return;
-                if(e.cancelable) e.preventDefault(); // Prevent scrolling on touch
-                painting = true;
-                draw(e);
-            }
-            function end() { painting = false; ctx.beginPath(); }
-            function draw(e) {
+                return { x: (e.touches?e.touches[0].clientX:e.clientX)-rect.left, y: (e.touches?e.touches[0].clientY:e.clientY)-rect.top };
+            };
+            const drawStart = (e) => {
+                if(isMoveMode || e.target !== canvas) return;
+                painting = true; draw(e);
+            };
+            const drawEnd = () => { painting = false; ctx.beginPath(); };
+            const draw = (e) => {
                 if(!painting) return;
                 const pos = getPos(e);
-                
-                ctx.lineWidth = isEraser ? 25 : 4;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.strokeStyle = isEraser ? '#fff' : color;
-                
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y);
-            }
-
-            canvas.addEventListener('mousedown', start);
-            canvas.addEventListener('mouseup', end);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseleave', end);
-            
-            canvas.addEventListener('touchstart', start, {passive: false});
-            canvas.addEventListener('touchend', end);
-            canvas.addEventListener('touchmove', draw, {passive: false});
-        }
-
-        // 7. Randomizer
-        function runRandomizer(btn) {
-            const area = btn.parentElement;
-            const display = area.querySelector('.random-result');
-            const names = area.querySelector('textarea').value.split('\n').filter(n=>n.trim());
-            
-            if(!names.length) {
-                display.innerHTML = '<span style="font-size:1rem; color:red">請輸入名單</span>';
-                return;
-            }
-
-            let c = 0;
-            btn.disabled = true;
-            const timer = setInterval(() => {
-                display.innerText = names[Math.floor(Math.random()*names.length)];
-                c++;
-                playSound('drum');
-                if(c > 20) {
-                    clearInterval(timer);
-                    display.style.transform = "scale(1.3)";
-                    display.style.transition = "0.2s";
-                    setTimeout(()=>display.style.transform="scale(1)", 200);
-                    playSound('tada');
-                    btn.disabled = false;
-                }
-            }, 80);
-        }
-
-        // 8. Calendar
-        function initCalendar(container) {
-            let date = new Date();
-            
-            function render() {
-                const y = date.getFullYear();
-                const m = date.getMonth();
-                const first = new Date(y, m, 1);
-                const last = new Date(y, m+1, 0);
-                
-                let html = `
-                    <div class="calendar-ctrl">
-                        <div class="cal-btn" onclick="changeMonth(this, -1)"><i class="fa-solid fa-chevron-left"></i></div>
-                        <div>${y}年 ${m+1}月</div>
-                        <div class="cal-btn" onclick="changeMonth(this, 1)"><i class="fa-solid fa-chevron-right"></i></div>
-                    </div>
-                    <div class="calendar-grid">
-                        <div class="cal-header">日</div><div class="cal-header">一</div>
-                        <div class="cal-header">二</div><div class="cal-header">三</div>
-                        <div class="cal-header">四</div><div class="cal-header">五</div>
-                        <div class="cal-header">六</div>
-                `;
-                for(let i=0; i<first.getDay(); i++) html += `<div class="cal-day empty"></div>`;
-                
-                const today = new Date();
-                for(let i=1; i<=last.getDate(); i++) {
-                    const isT = (i === today.getDate() && m === today.getMonth() && y === today.getFullYear()) ? 'today' : '';
-                    html += `<div class="cal-day ${isT}">${i}</div>`;
-                }
-                html += `</div>`;
-                container.innerHTML = html;
-                container.currentDate = date; 
-            }
-            
-            window.changeMonth = (btn, delta) => {
-                const c = btn.closest('.cal-container');
-                c.currentDate.setMonth(c.currentDate.getMonth() + delta);
-                date = c.currentDate; 
-                render();
+                ctx.lineWidth = isEraser ? 25 : 4; ctx.lineCap = 'round'; ctx.strokeStyle = isEraser ? 'rgba(0,0,0,1)' : color;
+                ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+                ctx.lineTo(pos.x, pos.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
             };
-            render();
+            canvas.addEventListener('mousedown', drawStart); canvas.addEventListener('mousemove', draw);
+            window.addEventListener('mouseup', drawEnd);
+            canvas.addEventListener('touchstart', drawStart, {passive:false}); canvas.addEventListener('touchmove', draw, {passive:false});
+
+            container.addEventListener('paste', (e) => {
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                for (let item of items) {
+                    if (item.type.indexOf('image') === 0) {
+                        const blob = item.getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            const imgWrapper = document.createElement('div');
+                            imgWrapper.className = 'pasted-img-wrapper';
+                            imgWrapper.style.left = '10px'; imgWrapper.style.top = '10px'; imgWrapper.style.width = '150px';
+                            imgWrapper.innerHTML = `<img src="${event.target.result}"><div class="resize-handle"></div>`;
+                            imgLayer.appendChild(imgWrapper);
+                            setupImgDrag(imgWrapper);
+                            if(!isMoveMode) window.toggleMoveMode(content.querySelector('#moveModeBtn'));
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+                }
+            });
+
+            function setupImgDrag(el) {
+                let startX, startY, startW, startH, startL, startT;
+                
+                el.onmousedown = (e) => {
+                    if(!isMoveMode) return;
+                    e.stopPropagation();
+                    imgLayer.querySelectorAll('.pasted-img-wrapper').forEach(i=>i.classList.remove('selected'));
+                    el.classList.add('selected');
+
+                    if(e.target.classList.contains('resize-handle')) {
+                        startX = e.clientX; startY = e.clientY;
+                        startW = parseInt(document.defaultView.getComputedStyle(el).width, 10);
+                        startH = parseInt(document.defaultView.getComputedStyle(el).height, 10);
+                        document.documentElement.addEventListener('mousemove', doResize, false);
+                        document.documentElement.addEventListener('mouseup', stopResize, false);
+                    } else {
+                        startX = e.clientX; startY = e.clientY;
+                        startL = el.offsetLeft; startT = el.offsetTop;
+                        document.documentElement.addEventListener('mousemove', doMove, false);
+                        document.documentElement.addEventListener('mouseup', stopMove, false);
+                    }
+                };
+
+                function doMove(e) {
+                    el.style.left = (startL + e.clientX - startX) + 'px';
+                    el.style.top = (startT + e.clientY - startY) + 'px';
+                }
+                function stopMove() { document.documentElement.removeEventListener('mousemove', doMove); document.documentElement.removeEventListener('mouseup', stopMove); }
+                function doResize(e) {
+                    el.style.width = (startW + e.clientX - startX) + 'px';
+                    el.style.height = (startH + e.clientY - startY) + 'px';
+                }
+                function stopResize() { document.documentElement.removeEventListener('mousemove', doResize); document.documentElement.removeEventListener('mouseup', stopResize); }
+            }
         }
 
-        // 9. Scoreboard
-        function createTeamHTML(name) {
-            return `
-                <div class="score-team">
-                    <div class="score-del" onclick="this.closest('.score-team').remove()"><i class="fa-solid fa-xmark"></i></div>
-                    <input type="text" value="${name}" style="border:none; text-align:center; font-weight:bold; width:100%; background:transparent; font-size:1.1rem; margin-bottom:5px;">
-                    <div class="score-num">0</div>
-                    <div class="score-ctrl">
-                        <button onclick="modScore(this, -1)">-</button>
-                        <button onclick="modScore(this, 1)">+</button>
-                    </div>
-                </div>
-            `;
-        }
-        function addTeam(btn) {
-            const container = btn.previousElementSibling;
-            const count = container.querySelectorAll('.score-team').length + 1;
-            container.insertAdjacentHTML('beforeend', createTeamHTML(`組別 ${count}`));
-            // Scroll to end
-            setTimeout(() => container.scrollLeft = container.scrollWidth, 100);
-        }
-        function modScore(btn, delta) {
-            const display = btn.parentElement.previousElementSibling;
-            let val = parseInt(display.innerText) + delta;
-            if(val < 0) val = 0;
-            display.innerText = val;
-            if(delta > 0) playSound('pop');
-            else playSound('click');
-        }
-
-        // 10. Clock
+        // --- Clock ---
         function startClock(content) {
             const t = content.querySelector('.clock-display');
             const d = content.querySelector('.date-display');
-            function update() {
+            setInterval(() => {
                 const now = new Date();
-                t.innerText = now.toLocaleTimeString('zh-TW', {hour12:false, hour:'2-digit', minute:'2-digit'});
-                d.innerText = now.toLocaleDateString('zh-TW', {month:'long', day:'numeric', weekday:'long'});
-            }
-            update();
-            setInterval(update, 1000);
+                t.innerText = now.toLocaleTimeString('zh-TW', {hour12:false});
+                d.innerText = now.toLocaleDateString('zh-TW', {year:'numeric', month:'long', day:'numeric', weekday:'long'});
+            }, 1000);
         }
 
-        // 吉祥物點擊效果
-        document.getElementById('mascot').addEventListener('click', () => {
-            playSound('tada');
-        });
+        // --- Common Helpers ---
+        function rollDice(el) {
+            const icons = ['one','two','three','four','five','six'];
+            let count=0, t=setInterval(() => {
+                el.innerHTML = `<i class="fa-solid fa-dice-${icons[Math.floor(Math.random()*6)]}"></i>`;
+                if(++count>10) { clearInterval(t); playSound('pop'); }
+            }, 50);
+        }
+        function padTime(inp) { inp.value = Math.max(0,parseInt(inp.value)||0).toString().padStart(2,'0'); }
+        
+        function timerLogic(btn) {
+            const wrapper = btn.closest('.timer-wrapper');
+            const [min, sec] = wrapper.querySelectorAll('input');
+            
+            if(wrapper.timerId) { clearInterval(wrapper.timerId); wrapper.timerId=null; btn.innerHTML='<i class="fa-solid fa-play"></i> 繼續'; }
+            else {
+                let total = parseInt(min.value)*60 + parseInt(sec.value);
+                if(total<=0) return;
+                min.disabled=sec.disabled=true; btn.innerHTML='<i class="fa-solid fa-pause"></i> 暫停';
+                wrapper.timerId = setInterval(()=>{
+                    if(total<=0) {
+                        clearInterval(wrapper.timerId); wrapper.timerId=null;
+                        min.disabled=sec.disabled=false; btn.innerHTML='<i class="fa-solid fa-play"></i> 開始';
+                        wrapper.querySelector('.timer-display').style.color='red'; playSound('tada'); return;
+                    }
+                    total--; min.value=Math.floor(total/60).toString().padStart(2,'0'); sec.value=(total%60).toString().padStart(2,'0');
+                }, 1000);
+            }
+        }
+        function timerReset(btn) {
+            const wrapper = btn.closest('.timer-wrapper');
+            clearInterval(wrapper.timerId); wrapper.timerId=null;
+            const [min, sec] = wrapper.querySelectorAll('input');
+            min.disabled=sec.disabled=false; min.value="05"; sec.value="00";
+            wrapper.querySelector('.timer-display').style.color='#333';
+            wrapper.querySelector('.timer-btn').innerHTML='<i class="fa-solid fa-play"></i> 開始';
+        }
 
+        function swLogic(btn) {
+            const d = btn.closest('.widget-content');
+            const disp = d.querySelector('.stopwatch-display');
+            if(!d.sw) d.sw={t:0, e:0, i:null};
+            
+            if(d.sw.i) { clearInterval(d.sw.i); d.sw.i=null; btn.innerHTML='<i class="fa-solid fa-play"></i> 繼續'; }
+            else {
+                d.sw.t = Date.now() - d.sw.e;
+                d.sw.i = setInterval(()=>{
+                    d.sw.e = Date.now() - d.sw.t;
+                    let ms=Math.floor((d.sw.e%1000)/10), s=Math.floor((d.sw.e/1000)%60), m=Math.floor(d.sw.e/60000);
+                    disp.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}.${ms.toString().padStart(2,'0')}`;
+                }, 10);
+                btn.innerHTML='<i class="fa-solid fa-pause"></i> 暫停';
+            }
+        }
+        function swReset(btn) {
+            const d = btn.closest('.widget-content'); clearInterval(d.sw?.i); d.sw={t:0, e:0, i:null};
+            d.querySelector('.stopwatch-display').innerText="00:00.00";
+            d.querySelector('.timer-btn').innerHTML='<i class="fa-solid fa-play"></i> 開始';
+        }
+
+        function runRandomizer(btn) {
+            const area = btn.parentElement;
+            const names = area.querySelector('textarea').value.split('\n').filter(n=>n.trim());
+            if(!names.length) return;
+            let c=0; btn.disabled=true;
+            const t = setInterval(()=>{
+                area.querySelector('.random-result').innerText = names[Math.floor(Math.random()*names.length)];
+                if(++c>20) { clearInterval(t); playSound('tada'); btn.disabled=false; }
+            }, 80);
+        }
+
+        function initCalendar(c) {
+            let date = new Date();
+            const render = () => {
+                const y=date.getFullYear(), m=date.getMonth();
+                let h = `<div style="display:flex;justify-content:space-between;margin-bottom:10px;font-weight:bold;">
+                    <span onclick="calNav(-1)" style="cursor:pointer">&lt;</span> ${y}年${m+1}月 <span onclick="calNav(1)" style="cursor:pointer">&gt;</span></div>
+                    <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:5px;">`;
+                ['日','一','二','三','四','五','六'].forEach(d=>h+=`<div style="color:#888;font-size:12px">${d}</div>`);
+                for(let i=0;i<new Date(y,m,1).getDay();i++) h+=`<div></div>`;
+                const today = new Date();
+                for(let i=1;i<=new Date(y,m+1,0).getDate();i++) {
+                    const isT = (i===today.getDate() && m===today.getMonth() && y===today.getFullYear()) ? 'background:var(--primary-color);color:white;border-radius:50%;' : '';
+                    h+=`<div style="padding:5px;${isT}">${i}</div>`;
+                }
+                c.innerHTML = h + '</div>';
+            };
+            window.calNav = (d) => { date.setMonth(date.getMonth()+d); render(); };
+            render();
+        }
+
+        function createTeamHTML(name) {
+            return `
+                <div class="score-team">
+                    <div class="score-del" style="position:absolute;top:5px;right:8px;cursor:pointer;color:#ccc;" onclick="this.closest('.score-team').remove()">✕</div>
+                    <input type="text" value="${name}" style="border:none;text-align:center;font-weight:bold;width:100%;background:transparent;margin-bottom:5px;">
+                    <div class="score-num">0</div>
+                    <div class="score-actions">
+                        <button class="score-ctrl-btn" onclick="modScore(this,-1)"><i class="fa-solid fa-minus"></i></button>
+                        <button class="score-ctrl-btn" onclick="modScore(this,1)"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>`;
+        }
+        function addTeam(btn) { 
+            const container = btn.previousElementSibling;
+            // 計算目前有幾個組別來決定下一組的名稱
+            const currentCount = container.querySelectorAll('.score-team').length;
+            // 使用中文數字對應 (簡單處理前10組，超過用數字)
+            const numMap = ['一','二','三','四','五','六','七','八','九','十'];
+            let newName = '';
+            if(currentCount < 10) {
+                newName = `第${numMap[currentCount]}組`;
+            } else {
+                newName = `第${currentCount + 1}組`;
+            }
+            container.insertAdjacentHTML('beforeend', createTeamHTML(newName)); 
+        }
+        function modScore(btn, d) { 
+            const n = btn.parentElement.previousElementSibling; 
+            n.innerText = Math.max(0, parseInt(n.innerText)+d); 
+        }
+
+        document.getElementById('mascot').addEventListener('click', () => playSound('tada'));
     </script>
 </body>
 </html>
