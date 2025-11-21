@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiyuChillGuy螢幕顯示系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --accent-color: #ff5f57;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --shadow-lg: 0 15px 35px rgba(0,0,0,0.15);
+            --shadow-sm: 0 5px 15px rgba(0,0,0,0.08);
+            --text-main: #2c3e50;
+            --radius-lg: 16px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('background/background001.png') no-repeat center center fixed;
+            background-size: cover;
+            background-color: #eef2f5;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            position: relative;
+            transition: background-image 0.5s ease, background-color 0.5s ease;
+        }
+
+        /* --- 工作區域 --- */
+        #workspace {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* --- 底部工具列容器 (包含縮小按鈕) --- */
+        .toolbar-wrapper {
+            position: relative;
+            margin-bottom: 30px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .toolbar-wrapper.minimized {
+            transform: translateY(120%);
+        }
+
+        /* 縮小/展開按鈕 */
+        .toggle-bar-btn {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 18px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s;
+        }
+        
+        .toggle-bar-btn:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        /* 工具列本體 */
+        .toolbar-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 12px 25px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            max-width: 90vw;
+            scrollbar-width: none; /* Firefox */
+        }
+        .toolbar-container::-webkit-scrollbar { display: none; }
+
+        .tool-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: #555;
+            min-width: 60px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tool-btn:active { transform: scale(0.92); }
+        .tool-btn:hover { color: var(--primary-color); }
+        .tool-btn.danger:hover { color: var(--accent-color); }
+
+        .tool-icon {
+            font-size: 20px;
+            margin-bottom: 6px;
+            background: rgba(255,255,255,0.6);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        
+        .tool-btn:hover .tool-icon {
+            background: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .tool-btn.danger:hover .tool-icon { border-color: var(--accent-color); color: var(--accent-color); }
+
+        .tool-label { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; white-space: nowrap;}
+
+        /* 背景選單 */
+        .bg-menu {
+            display: none;
+            position: absolute;
+            bottom: 80px;
+            left: 0; 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            flex-direction: column;
+            gap: 4px;
+            z-index: 200;
+            min-width: 140px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .bg-menu.show { display: flex; animation: fadeInUp 0.2s; }
+        @keyframes fadeInUp { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+        
+        .bg-option { padding: 8px 12px; cursor: pointer; font-size: 13px; border-radius: 6px; color: #333; transition: 0.2s; }
+        .bg-option:hover { background: #f0f4f8; color: var(--primary-color); font-weight: bold; }
+
+        /* --- Widget 視窗樣式 --- */
+        .widget {
+            position: absolute;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            min-width: 250px;
+            min-height: 150px; /* 預設最小高度 */
+            display: flex;
+            flex-direction: column;
+            pointer-events: auto;
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 10;
+            border: 1px solid var(--glass-border);
+            overflow: hidden; /* 為了 resize */
+            resize: both;     /* 允許使用者調整大小 */
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.9) translateY(20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .widget-header {
+            padding: 10px 15px;
+            background: rgba(248, 249, 250, 0.5);
+            cursor: grab;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            flex-shrink: 0; /* 防止 header 被壓縮 */
+        }
+        .widget-header:active { cursor: grabbing; }
+        .widget-title { font-size: 13px; color: #666; font-weight: 700; letter-spacing: 1px; }
+        .header-controls { display: flex; gap: 8px; align-items: center; }
+        .ctrl-btn { cursor: pointer; color: #999; font-size: 14px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; }
+        .ctrl-btn:hover { background: rgba(0,0,0,0.05); color: var(--primary-color); }
+        .close-btn { color: #ff5f57; font-size: 16px; }
+        .close-btn:hover { background: #ff5f57; color: white; }
+
+        .widget-content {
+            flex: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: auto; /* 內容過多時滾動 */
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* 隱藏捲軸但保留功能 */
+        .widget-content::-webkit-scrollbar { width: 6px; height: 6px; }
+        .widget-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+
+        /* --- Widget 專屬樣式 --- */
+
+        /* Traffic Light */
+        .traffic-container { display: flex; flex-direction: column; gap: 12px; width: 100%; transition: 0.3s; }
+        .traffic-row { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.5); padding: 5px 10px; border-radius: 30px; }
+        .light { width: 45px; height: 45px; border-radius: 50%; opacity: 0.3; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); transition: all 0.3s; flex-shrink: 0; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        .light.active { opacity: 1; transform: scale(1.1); box-shadow: 0 0 15px currentColor, inset 0 -5px 10px rgba(0,0,0,0.2); border-color: transparent;}
+        .traffic-input { flex: 1; border: none; padding: 5px; font-size: 16px; background: transparent; color: var(--text-main); font-weight: 500; }
+        .traffic-hide-text .traffic-input, .traffic-hide-text .traffic-row { background: transparent; padding: 0; width: fit-content; margin: 0 auto; }
+        .traffic-hide-text .traffic-row { gap: 0; }
+        .add-light-btn { font-size: 13px; color: #666; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); padding:6px 12px; border-radius:20px; cursor: pointer; align-self: center; margin-top: 5px; transition: 0.2s;}
+        .add-light-btn:hover { background: white; color: var(--primary-color); }
+
+        /* Text Editor */
+        .text-toolbar { display: flex; gap: 5px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px; width: 100%; flex-wrap: wrap; }
+        .text-btn { background: white; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #555; }
+        .text-btn:hover { background: #f0f0f0; color: var(--primary-color); }
+        .text-editor { width: 100%; height: 100%; min-height: 120px; overflow-y: auto; outline: none; cursor: text; font-size: 18px; line-height: 1.5; padding: 5px; color: #333; }
+        /* 便利貼顏色 */
+        .bg-color-picker { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); display: inline-block; margin-left: 5px; }
+
+        /* Timer & Stopwatch (優化版) */
+        .timer-wrapper { text-align: center; width: 100%; }
+        .timer-display { 
+            font-size: 4.5rem; 
+            font-weight: 700; 
+            font-variant-numeric: tabular-nums; 
+            margin: 10px 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #333;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+        }
+        .timer-input { 
+            width: 110px; 
+            font-size: 4.5rem; 
+            text-align: center; 
+            border: none; 
+            background: transparent; 
+            color: inherit; 
+            font-family: inherit; 
+            font-weight: inherit;
+            border-bottom: 2px solid transparent;
+            transition: border 0.3s;
+        }
+        .timer-input:focus { border-bottom: 2px solid var(--primary-color); }
+        /* 移除 input type=number 的箭頭 */
+        .timer-input::-webkit-outer-spin-button, .timer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .timer-controls { display: flex; gap: 15px; justify-content: center; align-items: center; margin-top: 15px;}
+        .timer-btn { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            background: var(--primary-color); 
+            color: white; 
+            font-size: 15px; 
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .timer-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(74, 144, 226, 0.4); }
+        .timer-btn:active { transform: translateY(0); }
+        .timer-btn.reset { background: #e0e0e0; color: #555; box-shadow: none; }
+        .timer-btn.reset:hover { background: #d0d0d0; }
+        
+        /* Draw */
+        .draw-wrapper { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; }
+        .draw-tools { display: flex; gap: 10px; margin-bottom: 10px; background: #fff; padding: 8px 15px; border-radius: 30px; box-shadow: var(--shadow-sm); }
+        .color-pick { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s;}
+        .color-pick:hover { transform: scale(1.1); }
+        .color-pick.active { transform: scale(1.2); border-color: #333; }
+        .canvas-container { 
+            flex: 1;
+            width: 100%;
+            min-height: 200px;
+            position: relative; 
+            border: 2px dashed #ccc; 
+            border-radius: 10px;
+            overflow: hidden; 
+            background: white; 
+            cursor: crosshair;
+        }
+        canvas { display: block; touch-action: none; }
+
+        /* Randomizer */
+        .randomizer-area { width: 100%; text-align: center; display: flex; flex-direction: column; height: 100%; }
+        .random-result { 
+            font-size: 2.5rem; 
+            font-weight: 800; 
+            color: var(--primary-color); 
+            min-height: 60px; 
+            margin: 10px 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: rgba(255,255,255,0.5);
+            border-radius: 10px;
+        }
+        textarea.names-input { 
+            width: 100%; 
+            flex: 1;
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            padding: 10px; 
+            resize: none; 
+            font-size: 14px;
+            background: rgba(255,255,255,0.8);
+        }
+
+        /* Calendar */
+        .calendar-ctrl { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px; font-weight: bold; font-size: 1.2rem; color: var(--text-main); }
+        .cal-btn { cursor: pointer; padding: 5px 10px; color: var(--primary-color); border-radius: 5px; transition: background 0.2s;}
+        .cal-btn:hover { background: rgba(0,0,0,0.05); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-size: 13px; width: 100%; }
+        .cal-header { font-weight: bold; padding: 8px 0; color: #888; }
+        .cal-day { padding: 8px; cursor: pointer; border-radius: 8px; transition: 0.2s; }
+        .cal-day:hover:not(.empty) { background: #eef2f5; }
+        .cal-day.today { background: var(--primary-color); color: white; font-weight: bold; box-shadow: 0 3px 8px rgba(74, 144, 226, 0.4); }
+
+        /* Scoreboard (Drag & Scroll Optimized) */
+        .score-container { 
+            display: flex; 
+            gap: 15px; 
+            overflow-x: auto; 
+            width: 100%;
+            padding: 10px 5px;
+            align-items: flex-start;
+        }
+        .score-container::-webkit-scrollbar { height: 8px; }
+        .score-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+        .score-team { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background: #fff; 
+            padding: 15px; 
+            border-radius: 12px; 
+            min-width: 120px; 
+            position: relative; 
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+        .score-num { font-size: 3rem; font-weight: 800; margin: 10px 0; color: var(--text-main); line-height: 1; }
+        .score-ctrl button { 
+            width: 32px; height: 32px; 
+            border-radius: 50%; border: none; 
+            background: #f0f0f0; color: #555;
+            cursor: pointer; font-weight: bold; font-size: 16px; margin: 0 3px; transition: 0.2s;
+        }
+        .score-ctrl button:hover { background: var(--primary-color); color: white; transform: scale(1.1); }
+        .score-del { position: absolute; top: 5px; right: 8px; font-size: 12px; color: #ccc; cursor: pointer; padding: 2px;}
+        .score-del:hover { color: var(--accent-color); }
+        .add-team-btn { 
+            margin-top: 10px; font-size: 13px; cursor: pointer; 
+            color: var(--primary-color); border: 1px dashed var(--primary-color); 
+            padding: 8px 15px; border-radius: 20px; background: rgba(255,255,255,0.8); 
+            transition: 0.2s;
+        }
+        .add-team-btn:hover { background: var(--primary-color); color: white; }
+
+        /* 吉祥物 */
+        #mascot {
+            position: fixed;
+            bottom: 15px;
+            left: 20px;
+            width: 120px;
+            height: auto;
+            z-index: 150;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+        }
+        #mascot:hover {
+            filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 15px #ff00de);
+            transform: scale(1.05) rotate(-5deg);
+        }
+
+        /* 版權 */
+        .copyright {
+            position: absolute;
+            bottom: 5px;
+            width: 100%;
+            text-align: center;
+            color: rgba(0, 0, 0, 0.4);
+            font-size: 11px;
+            z-index: 50;
+            font-weight: 600;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="workspace"></div>
+    
+    <!-- 吉祥物 -->
+    <img src="image/LiyuChillGuy.svg" alt="LiyuChillGuy" id="mascot" title="按我一下!">
+
+    <!-- 背景選單 -->
+    <div id="bgMenu" class="bg-menu">
+        <div class="bg-option" onclick="setBg('image', 1)">🖼️ 背景 1</div>
+        <div class="bg-option" onclick="setBg('image', 2)">🖼️ 背景 2</div>
+        <div class="bg-option" onclick="setBg('image', 3)">🖼️ 背景 3</div>
+        <div class="bg-option" onclick="setBg('image', 4)">🖼️ 背景 4</div>
+        <div class="bg-option" onclick="setBg('image', 5)">🖼️ 背景 5</div>
+        <hr style="margin: 4px 0; border:0; border-top:1px solid #eee;">
+        <div class="bg-option" onclick="setBg('color', '#eef2f5')">🎨 簡約灰白</div>
+        <div class="bg-option" onclick="setBg('color', '#2c3e50')">🌙 深色模式</div>
+        <div class="bg-option" onclick="setBg('color', '#a8e6cf')">🍃 清新綠意</div>
+    </div>
+
+    <div class="toolbar-wrapper" id="toolbarWrapper">
+        <!-- 縮小按鈕 -->
+        <div class="toggle-bar-btn" onclick="toggleToolbar()" title="縮小/展開工具列">
+            <i class="fa-solid fa-chevron-down" id="toggleIcon"></i>
+        </div>
+
+        <div class="toolbar-container">
+            <div class="tool-btn" id="bgBtn" title="左鍵換圖 / 右鍵選單">
+                <div class="tool-icon"><i class="fa-solid fa-image"></i></div>
+                <span class="tool-label">背景更換</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('randomizer')">
+                <div class="tool-icon"><i class="fa-solid fa-shuffle"></i></div>
+                <span class="tool-label">隨機抽籤</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('text')">
+                <div class="tool-icon"><i class="fa-solid fa-font"></i></div>
+                <span class="tool-label">文字/公告</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('traffic')">
+                <div class="tool-icon"><i class="fa-solid fa-traffic-light"></i></div>
+                <span class="tool-label">紅綠燈</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('timer')">
+                <div class="tool-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                <span class="tool-label">倒數計時</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('stopwatch')">
+                <div class="tool-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                <span class="tool-label">碼錶</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('clock')">
+                <div class="tool-icon"><i class="fa-regular fa-clock"></i></div>
+                <span class="tool-label">時鐘</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('calendar')">
+                <div class="tool-icon"><i class="fa-solid fa-calendar-days"></i></div>
+                <span class="tool-label">日曆</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('scoreboard')">
+                <div class="tool-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+                <span class="tool-label">記分板</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('dice')">
+                <div class="tool-icon"><i class="fa-solid fa-dice"></i></div>
+                <span class="tool-label">骰子</span>
+            </div>
+            <div class="tool-btn" onclick="createWidget('draw')">
+                <div class="tool-icon"><i class="fa-solid fa-pen-nib"></i></div>
+                <span class="tool-label">畫板</span>
+            </div>
+            <!-- 一鍵清除 -->
+            <div class="tool-btn danger" onclick="clearAllWidgets()" title="清除所有視窗">
+                <div class="tool-icon" style="color: #ff5f57;"><i class="fa-solid fa-trash-can"></i></div>
+                <span class="tool-label">清除全部</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="copyright">
+        Copyright © Liyuchiutiger Gongminshen
+    </div>
+
+    <script>
+        const workspace = document.getElementById('workspace');
+
+        // --- 工具列縮放功能 ---
+        function toggleToolbar() {
+            const wrapper = document.getElementById('toolbarWrapper');
+            const icon = document.getElementById('toggleIcon');
+            wrapper.classList.toggle('minimized');
+            
+            if (wrapper.classList.contains('minimized')) {
+                icon.className = 'fa-solid fa-chevron-up';
+            } else {
+                icon.className = 'fa-solid fa-chevron-down';
+            }
+        }
+
+        // --- 清除全部視窗 ---
+        function clearAllWidgets() {
+            if(confirm('確定要清除所有小工具嗎？')) {
+                const widgets = document.querySelectorAll('.widget');
+                widgets.forEach(w => {
+                    w.style.transform = 'scale(0.8) opacity(0)';
+                    setTimeout(() => w.remove(), 200);
+                });
+            }
+        }
+
+        // --- 音效系統 ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const t = audioCtx.currentTime;
+            
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, t);
+                osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+                gain.gain.setValueAtTime(0.2, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                osc.start(t);
+                osc.stop(t + 0.1);
+            } 
+            else if (type === 'pop') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, t);
+                osc.frequency.linearRampToValueAtTime(600, t + 0.1);
+                gain.gain.setValueAtTime(0.2, t);
+                gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
+                osc.start(t);
+                osc.stop(t + 0.2);
+            }
+            else if (type === 'beep') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, t);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.linearRampToValueAtTime(0.01, t + 0.1);
+                osc.start(t);
+                osc.stop(t + 0.1);
+            }
+            else if (type === 'alarm') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(440, t);
+                osc.frequency.linearRampToValueAtTime(880, t + 0.5);
+                gain.gain.setValueAtTime(0.3, t);
+                gain.gain.linearRampToValueAtTime(0.01, t + 1);
+                osc.start(t);
+                osc.stop(t + 1);
+            }
+            else if (type === 'drum') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(100, t);
+                gain.gain.setValueAtTime(0.1, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+                osc.start(t);
+                osc.stop(t + 0.05);
+            }
+            else if (type === 'tada') {
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    setTimeout(() => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.type = 'sine';
+                        o.frequency.value = freq;
+                        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                        o.start(audioCtx.currentTime);
+                        o.stop(audioCtx.currentTime + 0.5);
+                    }, i * 100);
+                });
+            }
+        }
+
+        // --- 背景邏輯 ---
+        const bgBtn = document.getElementById('bgBtn');
+        const bgMenu = document.getElementById('bgMenu');
+        let currentBgIndex = 1;
+
+        bgBtn.addEventListener('click', (e) => {
+            currentBgIndex = (currentBgIndex % 5) + 1;
+            setBg('image', currentBgIndex);
+            bgMenu.classList.remove('show');
+        });
+
+        bgBtn.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const rect = bgBtn.getBoundingClientRect();
+            bgMenu.style.left = rect.left + 'px';
+            bgMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px'; // 向上彈出
+            bgMenu.classList.add('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if(!bgBtn.contains(e.target) && !bgMenu.contains(e.target)) {
+                bgMenu.classList.remove('show');
+            }
+        });
+
+        function setBg(type, value) {
+            if(type === 'image') {
+                document.body.style.backgroundImage = `url('background/background00${value}.png')`;
+                document.body.style.backgroundColor = '#eef2f5';
+                currentBgIndex = value;
+            } else {
+                document.body.style.backgroundImage = 'none';
+                document.body.style.backgroundColor = value;
+            }
+            bgMenu.classList.remove('show');
+        }
+
+        // --- Widget Factory ---
+        // 標題對應表
+        const titles = {
+            'randomizer': '隨機抽籤',
+            'text': '文字公告',
+            'traffic': '紅綠燈',
+            'timer': '倒數計時',
+            'stopwatch': '碼錶',
+            'clock': '時鐘',
+            'calendar': '日曆',
+            'scoreboard': '記分板',
+            'dice': '擲骰子',
+            'draw': '畫板'
+        };
+
+        function createWidget(type) {
+            const widget = document.createElement('div');
+            widget.className = 'widget';
+            
+            // 隨機位置，稍微置中
+            const randomX = Math.max(50, Math.random() * (window.innerWidth - 400));
+            const randomY = Math.max(50, Math.random() * (window.innerHeight - 500));
+            widget.style.left = `${randomX}px`;
+            widget.style.top = `${randomY}px`;
+
+            const header = document.createElement('div');
+            header.className = 'widget-header';
+            
+            let extraControls = '';
+            if(type === 'traffic') {
+                extraControls = `<div class="ctrl-btn" onclick="toggleTrafficText(this)" title="顯示/隱藏文字"><i class="fa-solid fa-eye"></i></div>`;
+            }
+
+            header.innerHTML = `
+                <span class="widget-title">${titles[type] || type}</span>
+                <div class="header-controls">
+                    ${extraControls}
+                    <div class="close-btn ctrl-btn" onclick="this.closest('.widget').remove()" title="關閉"><i class="fa-solid fa-xmark"></i></div>
+                </div>`;
+            
+            widget.appendChild(header);
+
+            const content = document.createElement('div');
+            content.className = 'widget-content';
+
+            // --- 內容生成 ---
+            if (type === 'clock') {
+                content.innerHTML = `<div style="font-size:3.8rem; font-weight:800; color:var(--text-main); line-height:1;" class="clock-display">00:00</div>
+                                     <div style="font-size:1.2rem; color:#7f8c8d; margin-top:5px;" class="date-display">...</div>`;
+                startClock(content);
+                widget.style.width = "300px"; widget.style.height = "auto";
+            } 
+            else if (type === 'traffic') {
+                content.innerHTML = `
+                    <div class="traffic-container">
+                        <div class="traffic-row">
+                            <div class="light red" style="background:#ff5f57" onclick="toggleLight(this)"></div>
+                            <input type="text" class="traffic-input" placeholder="禁止 / 安靜">
+                        </div>
+                        <div class="traffic-row">
+                            <div class="light yellow" style="background:#ffbd2e" onclick="toggleLight(this)"></div>
+                            <input type="text" class="traffic-input" placeholder="注意 / 輕聲">
+                        </div>
+                        <div class="traffic-row">
+                            <div class="light green" style="background:#27c93f" onclick="toggleLight(this)"></div>
+                            <input type="text" class="traffic-input" placeholder="開始 / 討論">
+                        </div>
+                    </div>
+                    <button class="add-light-btn" onclick="addCustomLight(this)">+ 新增自訂燈號</button>
+                `;
+            } 
+            else if (type === 'text') {
+                content.innerHTML = `
+                    <div class="text-toolbar">
+                        <button class="text-btn" onclick="formatText(this, 'bold')" title="粗體"><i class="fa-solid fa-bold"></i></button>
+                        <button class="text-btn" onclick="formatText(this, 'italic')" title="斜體"><i class="fa-solid fa-italic"></i></button>
+                        <button class="text-btn" onclick="formatText(this, 'underline')" title="底線"><i class="fa-solid fa-underline"></i></button>
+                        <button class="text-btn" onclick="formatText(this, 'insertOrderedList')" title="編號"><i class="fa-solid fa-list-ol"></i></button>
+                        <select class="text-btn" onchange="formatText(this, 'fontSize', this.value)" style="width:auto; padding:0 5px;">
+                            <option value="3">字號</option><option value="5">大</option><option value="7">特大</option>
+                        </select>
+                        <div style="border-left:1px solid #ddd; margin:0 5px; height:20px; align-self:center;"></div>
+                        <div class="bg-color-picker" style="background:#fff" onclick="setTextBg(this, '#fff')"></div>
+                        <div class="bg-color-picker" style="background:#fff740" onclick="setTextBg(this, '#fff740')"></div>
+                        <div class="bg-color-picker" style="background:#ffccf9" onclick="setTextBg(this, '#ffccf9')"></div>
+                        <div class="bg-color-picker" style="background:#ccf9ff" onclick="setTextBg(this, '#ccf9ff')"></div>
+                    </div>
+                    <div class="text-editor" contenteditable="true">點擊此處開始輸入...</div>
+                `;
+                widget.style.width = "350px"; widget.style.height = "250px";
+            } 
+            else if (type === 'dice') {
+                content.innerHTML = `<div style="font-size:6rem; cursor:pointer; color:var(--primary-color); transition:0.3s;" onclick="rollDice(this)" class="dice-icon"><i class="fa-solid fa-dice-one"></i></div>`;
+            }
+            else if (type === 'timer') {
+                content.innerHTML = `
+                    <div class="timer-wrapper">
+                        <div class="timer-display">
+                             <input type="number" value="05" class="timer-input min" onchange="padTime(this)"><span>:</span>
+                             <input type="number" value="00" class="timer-input sec" onchange="padTime(this)">
+                        </div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" onclick="timerLogic(this, 'start')"><i class="fa-solid fa-play"></i> 開始</button>
+                            <button class="timer-btn reset" onclick="timerLogic(this, 'reset')"><i class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                    </div>`;
+                widget.style.width = "320px";
+            }
+            else if (type === 'stopwatch') {
+                content.innerHTML = `
+                    <div class="stopwatch-display" style="font-size:3.5rem; font-family:'Courier New', monospace; font-weight:bold; color:#333; margin:10px 0;">00:00.00</div>
+                    <div class="timer-controls">
+                        <button class="timer-btn" onclick="stopwatchLogic(this, 'toggle')"><i class="fa-solid fa-play"></i> 開始</button>
+                        <button class="timer-btn reset" onclick="stopwatchLogic(this, 'reset')"><i class="fa-solid fa-rotate-right"></i></button>
+                    </div>
+                `;
+                widget.style.width = "320px";
+            }
+            else if (type === 'draw') {
+                content.innerHTML = `
+                    <div class="draw-wrapper">
+                        <div class="draw-tools">
+                            <div class="color-pick active" style="background:black" onclick="setPen(this, 'black')"></div>
+                            <div class="color-pick" style="background:#ff5f57" onclick="setPen(this, '#ff5f57')"></div>
+                            <div class="color-pick" style="background:#4a90e2" onclick="setPen(this, '#4a90e2')"></div>
+                            <div class="color-pick" style="background:#27c93f" onclick="setPen(this, '#27c93f')"></div>
+                            <div class="color-pick" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#666;" onclick="setPen(this, 'eraser')" title="橡皮擦"><i class="fa-solid fa-eraser"></i></div>
+                            <div class="color-pick" style="background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#666;" onclick="clearCanvas(this)" title="清空"><i class="fa-solid fa-trash"></i></div>
+                        </div>
+                        <div class="canvas-container"><canvas></canvas></div>
+                    </div>`;
+                widget.style.width = "400px"; widget.style.height = "350px";
+                setTimeout(() => initDraw(content), 100);
+            }
+            else if (type === 'randomizer') {
+                content.innerHTML = `
+                    <div class="randomizer-area">
+                        <div class="random-result"><i class="fa-solid fa-question" style="color:#ccc; font-size:2rem;"></i></div>
+                        <textarea class="names-input" placeholder="在此輸入名單，每行一個名字..." rows="5"></textarea>
+                        <button class="timer-btn" style="margin-top:10px; width:100%; justify-content:center;" onclick="runRandomizer(this)"><i class="fa-solid fa-shuffle"></i> 開始抽籤</button>
+                    </div>`;
+                widget.style.width = "300px"; widget.style.height = "350px";
+            }
+            else if (type === 'calendar') {
+                content.innerHTML = `<div class="cal-container" style="width:100%;"></div>`;
+                initCalendar(content.querySelector('.cal-container'));
+                widget.style.width = "300px";
+            }
+            else if (type === 'scoreboard') {
+                content.innerHTML = `
+                    <div class="score-container">
+                        ${createTeamHTML('第一組')}
+                        ${createTeamHTML('第二組')}
+                        ${createTeamHTML('第三組')}
+                    </div>
+                    <button class="add-team-btn" onclick="addTeam(this)">+ 新增組別</button>
+                `;
+                widget.style.width = "450px"; // 預設寬一點
+                widget.style.height = "280px";
+            }
+
+            widget.appendChild(content);
+            workspace.appendChild(widget);
+            makeDraggable(widget);
+        }
+
+        // --- 功能實作 ---
+
+        function makeDraggable(element) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            const header = element.querySelector('.widget-header');
+            header.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+                
+                // Bring to front
+                document.querySelectorAll('.widget').forEach(w => w.style.zIndex = 10);
+                element.style.zIndex = 100;
+            }
+            function elementDrag(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        // 1. Traffic Light
+        function toggleTrafficText(btn) {
+            const container = btn.closest('.widget').querySelector('.traffic-container');
+            const icon = btn.querySelector('i');
+            if (container.classList.contains('traffic-hide-text')) {
+                container.classList.remove('traffic-hide-text');
+                icon.className = 'fa-solid fa-eye';
+                icon.parentElement.title = "隱藏文字";
+            } else {
+                container.classList.add('traffic-hide-text');
+                icon.className = 'fa-solid fa-eye-slash';
+                icon.parentElement.title = "顯示文字";
+            }
+        }
+        function toggleLight(el) {
+            const parent = el.closest('.traffic-container');
+            const allLights = parent.querySelectorAll('.light');
+            const isActive = el.classList.contains('active');
+            allLights.forEach(l => l.classList.remove('active'));
+            if(!isActive) {
+                el.classList.add('active');
+                playSound('click');
+            }
+        }
+        function addCustomLight(btn) {
+            const container = btn.previousElementSibling;
+            const row = document.createElement('div');
+            row.className = 'traffic-row';
+            const colors = ['#9b59b6', '#34495e', '#e67e22', '#1abc9c', '#ff00de'];
+            const color = colors[Math.floor(Math.random()*colors.length)];
+            row.innerHTML = `
+                <div class="light" style="background:${color}" onclick="toggleLight(this)"></div>
+                <input type="text" class="traffic-input" placeholder="自訂事項">
+            `;
+            container.appendChild(row);
+        }
+
+        // 2. Text Editor
+        function formatText(btn, cmd, val=null) {
+            document.execCommand(cmd, false, val);
+            btn.closest('.widget-content').querySelector('.text-editor').focus();
+        }
+        function setTextBg(btn, color) {
+            const content = btn.closest('.widget-content');
+            content.querySelector('.text-editor').style.background = color;
+            if(color !== '#fff') content.querySelector('.text-editor').style.borderRadius = "8px";
+        }
+
+        // 3. Dice
+        function rollDice(el) {
+            const icons = ['fa-dice-one', 'fa-dice-two', 'fa-dice-three', 'fa-dice-four', 'fa-dice-five', 'fa-dice-six'];
+            let count = 0;
+            playSound('click');
+            el.style.transform = 'rotate(360deg) scale(1.2)';
+            const interval = setInterval(() => {
+                el.innerHTML = `<i class="fa-solid ${icons[Math.floor(Math.random()*6)]}"></i>`;
+                count++;
+                if(count%3 === 0) playSound('click'); 
+                if(count > 12) {
+                    clearInterval(interval);
+                    el.style.transform = 'rotate(0deg) scale(1)';
+                    playSound('pop');
+                }
+            }, 50);
+        }
+
+        // 4. Timer
+        function padTime(input) {
+            let val = parseInt(input.value);
+            if(isNaN(val) || val < 0) val = 0;
+            input.value = val.toString().padStart(2,'0');
+        }
+        function timerLogic(btn, action) {
+            const wrapper = btn.closest('.timer-wrapper');
+            const minIn = wrapper.querySelector('.min');
+            const secIn = wrapper.querySelector('.sec');
+            const display = wrapper.querySelector('.timer-display');
+
+            if (action === 'reset') {
+                clearInterval(wrapper.timerId);
+                wrapper.timerId = null;
+                wrapper.querySelector('button i').className = 'fa-solid fa-play';
+                wrapper.querySelector('button').innerHTML = '<i class="fa-solid fa-play"></i> 開始';
+                minIn.disabled = false; secIn.disabled = false;
+                display.style.color = '#333';
+                playSound('click');
+                return;
+            }
+
+            if (wrapper.timerId) {
+                // Pause
+                clearInterval(wrapper.timerId);
+                wrapper.timerId = null;
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> 繼續';
+                minIn.disabled = false; secIn.disabled = false;
+            } else {
+                // Start
+                let total = parseInt(minIn.value)*60 + parseInt(secIn.value);
+                if(total <= 0) return;
+                minIn.disabled = true; secIn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i> 暫停';
+                playSound('click');
+
+                wrapper.timerId = setInterval(() => {
+                    if (total <= 0) {
+                        clearInterval(wrapper.timerId);
+                        wrapper.timerId = null;
+                        btn.innerHTML = '<i class="fa-solid fa-play"></i> 開始';
+                        display.style.color = 'var(--accent-color)';
+                        minIn.disabled = false; secIn.disabled = false;
+                        playSound('alarm');
+                        return;
+                    }
+                    total--;
+                    if(total <= 3 && total >= 0) playSound('beep'); 
+                    minIn.value = Math.floor(total/60).toString().padStart(2,'0');
+                    secIn.value = (total%60).toString().padStart(2,'0');
+                }, 1000);
+            }
+        }
+
+        // 5. Stopwatch
+        function stopwatchLogic(btn, action) {
+            const parent = btn.closest('.widget-content');
+            const display = parent.querySelector('.stopwatch-display');
+            if(!parent.swData) parent.swData = { start: 0, elapsed: 0, id: null };
+            const d = parent.swData;
+
+            playSound('click');
+
+            if(action === 'toggle') {
+                if(d.id) {
+                    // Pause
+                    clearInterval(d.id); d.id = null; 
+                    btn.innerHTML = '<i class="fa-solid fa-play"></i> 繼續';
+                } else {
+                    // Start
+                    d.start = Date.now() - d.elapsed;
+                    d.id = setInterval(() => {
+                        d.elapsed = Date.now() - d.start;
+                        const min = Math.floor(d.elapsed/60000);
+                        const sec = Math.floor((d.elapsed%60000)/1000);
+                        const ms = Math.floor((d.elapsed%1000)/10);
+                        display.innerText = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}.${ms.toString().padStart(2,'0')}`;
+                    }, 10);
+                    btn.innerHTML = '<i class="fa-solid fa-pause"></i> 暫停';
+                }
+            } else {
+                // Reset
+                clearInterval(d.id); d.id = null; d.elapsed = 0;
+                display.innerText = "00:00.00";
+                parent.querySelector('.timer-btn').innerHTML = '<i class="fa-solid fa-play"></i> 開始';
+            }
+        }
+
+        // 6. Draw
+        function initDraw(content) {
+            const container = content.querySelector('.canvas-container');
+            const canvas = container.querySelector('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            function resize() {
+                // Save content
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                tempCanvas.getContext('2d').drawImage(canvas, 0, 0);
+                
+                // Resize
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                
+                // Restore content
+                ctx.drawImage(tempCanvas, 0, 0);
+            }
+            new ResizeObserver(resize).observe(container);
+            
+            let painting = false;
+            let color = 'black';
+            let isEraser = false;
+
+            window.setPen = (el, c) => {
+                el.parentElement.querySelectorAll('.color-pick').forEach(x=>x.classList.remove('active'));
+                el.classList.add('active');
+                isEraser = (c === 'eraser');
+                if(!isEraser) color = c;
+            };
+            
+            window.clearCanvas = (el) => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                playSound('click');
+            };
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            }
+
+            function start(e) {
+                if(e.target !== canvas) return;
+                if(e.cancelable) e.preventDefault(); // Prevent scrolling on touch
+                painting = true;
+                draw(e);
+            }
+            function end() { painting = false; ctx.beginPath(); }
+            function draw(e) {
+                if(!painting) return;
+                const pos = getPos(e);
+                
+                ctx.lineWidth = isEraser ? 25 : 4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = isEraser ? '#fff' : color;
+                
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            }
+
+            canvas.addEventListener('mousedown', start);
+            canvas.addEventListener('mouseup', end);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseleave', end);
+            
+            canvas.addEventListener('touchstart', start, {passive: false});
+            canvas.addEventListener('touchend', end);
+            canvas.addEventListener('touchmove', draw, {passive: false});
+        }
+
+        // 7. Randomizer
+        function runRandomizer(btn) {
+            const area = btn.parentElement;
+            const display = area.querySelector('.random-result');
+            const names = area.querySelector('textarea').value.split('\n').filter(n=>n.trim());
+            
+            if(!names.length) {
+                display.innerHTML = '<span style="font-size:1rem; color:red">請輸入名單</span>';
+                return;
+            }
+
+            let c = 0;
+            btn.disabled = true;
+            const timer = setInterval(() => {
+                display.innerText = names[Math.floor(Math.random()*names.length)];
+                c++;
+                playSound('drum');
+                if(c > 20) {
+                    clearInterval(timer);
+                    display.style.transform = "scale(1.3)";
+                    display.style.transition = "0.2s";
+                    setTimeout(()=>display.style.transform="scale(1)", 200);
+                    playSound('tada');
+                    btn.disabled = false;
+                }
+            }, 80);
+        }
+
+        // 8. Calendar
+        function initCalendar(container) {
+            let date = new Date();
+            
+            function render() {
+                const y = date.getFullYear();
+                const m = date.getMonth();
+                const first = new Date(y, m, 1);
+                const last = new Date(y, m+1, 0);
+                
+                let html = `
+                    <div class="calendar-ctrl">
+                        <div class="cal-btn" onclick="changeMonth(this, -1)"><i class="fa-solid fa-chevron-left"></i></div>
+                        <div>${y}年 ${m+1}月</div>
+                        <div class="cal-btn" onclick="changeMonth(this, 1)"><i class="fa-solid fa-chevron-right"></i></div>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="cal-header">日</div><div class="cal-header">一</div>
+                        <div class="cal-header">二</div><div class="cal-header">三</div>
+                        <div class="cal-header">四</div><div class="cal-header">五</div>
+                        <div class="cal-header">六</div>
+                `;
+                for(let i=0; i<first.getDay(); i++) html += `<div class="cal-day empty"></div>`;
+                
+                const today = new Date();
+                for(let i=1; i<=last.getDate(); i++) {
+                    const isT = (i === today.getDate() && m === today.getMonth() && y === today.getFullYear()) ? 'today' : '';
+                    html += `<div class="cal-day ${isT}">${i}</div>`;
+                }
+                html += `</div>`;
+                container.innerHTML = html;
+                container.currentDate = date; 
+            }
+            
+            window.changeMonth = (btn, delta) => {
+                const c = btn.closest('.cal-container');
+                c.currentDate.setMonth(c.currentDate.getMonth() + delta);
+                date = c.currentDate; 
+                render();
+            };
+            render();
+        }
+
+        // 9. Scoreboard
+        function createTeamHTML(name) {
+            return `
+                <div class="score-team">
+                    <div class="score-del" onclick="this.closest('.score-team').remove()"><i class="fa-solid fa-xmark"></i></div>
+                    <input type="text" value="${name}" style="border:none; text-align:center; font-weight:bold; width:100%; background:transparent; font-size:1.1rem; margin-bottom:5px;">
+                    <div class="score-num">0</div>
+                    <div class="score-ctrl">
+                        <button onclick="modScore(this, -1)">-</button>
+                        <button onclick="modScore(this, 1)">+</button>
+                    </div>
+                </div>
+            `;
+        }
+        function addTeam(btn) {
+            const container = btn.previousElementSibling;
+            const count = container.querySelectorAll('.score-team').length + 1;
+            container.insertAdjacentHTML('beforeend', createTeamHTML(`組別 ${count}`));
+            // Scroll to end
+            setTimeout(() => container.scrollLeft = container.scrollWidth, 100);
+        }
+        function modScore(btn, delta) {
+            const display = btn.parentElement.previousElementSibling;
+            let val = parseInt(display.innerText) + delta;
+            if(val < 0) val = 0;
+            display.innerText = val;
+            if(delta > 0) playSound('pop');
+            else playSound('click');
+        }
+
+        // 10. Clock
+        function startClock(content) {
+            const t = content.querySelector('.clock-display');
+            const d = content.querySelector('.date-display');
+            function update() {
+                const now = new Date();
+                t.innerText = now.toLocaleTimeString('zh-TW', {hour12:false, hour:'2-digit', minute:'2-digit'});
+                d.innerText = now.toLocaleDateString('zh-TW', {month:'long', day:'numeric', weekday:'long'});
+            }
+            update();
+            setInterval(update, 1000);
+        }
+
+        // 吉祥物點擊效果
+        document.getElementById('mascot').addEventListener('click', () => {
+            playSound('tada');
+        });
+
+    </script>
+</body>
+</html>
