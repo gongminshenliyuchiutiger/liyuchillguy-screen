@@ -2,16 +2,16 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>LiyuChillGuy螢幕顯示系統</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 :root{--primary-color:#4a90e2;--accent-color:#ff5f57;--glass-bg:rgba(255,255,255,0.95);--glass-border:rgba(255,255,255,0.6);--shadow-lg:0 15px 35px rgba(0,0,0,0.15);--shadow-sm:0 5px 15px rgba(0,0,0,0.08);--text-main:#2c3e50;--radius-lg:16px}
-*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent;outline:none;touch-action: manipulation;}
 input,textarea,[contenteditable]{user-select:text;cursor:text}
 body{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;background:url('background/background001.png') no-repeat center center fixed;background-size:cover;background-color:#eef2f5;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;transition:background 0.5s ease}
 #workspace{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
-#mascot{position:absolute;bottom:15px;left:20px;width:120px;height:auto;z-index:150;cursor:grab;filter:drop-shadow(2px 4px 6px rgba(0,0,0,0.3));pointer-events:auto;transition:transform .2s}
+#mascot{position:absolute;bottom:15px;left:20px;width:120px;height:auto;z-index:150;cursor:grab;filter:drop-shadow(2px 4px 6px rgba(0,0,0,0.3));pointer-events:auto;transition:transform .2s;touch-action: none;}
 #mascot:active{cursor:grabbing}
 #mascot:hover{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 15px #ff00de);transform:scale(1.05) rotate(-5deg)}
 .toolbar-wrapper{position:relative;margin-bottom:30px;z-index:100;display:flex;flex-direction:column;align-items:center;transition:transform .4s cubic-bezier(0.68,-0.55,0.27,1.55);pointer-events:auto}
@@ -45,7 +45,7 @@ body{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;background:url('
 .float-emoji{position:absolute;bottom:-50px;font-size:40px;animation:floatUp 3s ease-in forwards;opacity:0}
 @keyframes floatUp{0%{bottom:-50px;opacity:1;transform:translateX(0) scale(.5)}50%{opacity:1}100%{bottom:80%;opacity:0;transform:translateX(var(--x-sway)) scale(1.5)}}
 @keyframes fadeOut{to{opacity:0;transform:translateY(20px)}}
-.widget{position:absolute;background:var(--glass-bg);backdrop-filter:blur(12px);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);min-width:250px;min-height:150px;display:flex;flex-direction:column;pointer-events:auto;animation:popIn .3s cubic-bezier(0.34,1.56,0.64,1);z-index:10;border:1px solid var(--glass-border);resize:both;overflow:hidden;transition:background-color .2s}
+.widget{position:absolute;background:var(--glass-bg);backdrop-filter:blur(12px);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);min-width:250px;min-height:150px;display:flex;flex-direction:column;pointer-events:auto;animation:popIn .3s cubic-bezier(0.34,1.56,0.64,1);z-index:10;border:1px solid var(--glass-border);resize:both;overflow:hidden;transition:background-color .2s;touch-action: none;}
 @keyframes popIn{from{transform:scale(.9) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
 .widget-header{padding:8px 15px;background:rgba(248,249,250,.5);cursor:grab;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(0,0,0,.05);flex-shrink:0}
 .widget-header:active{cursor:grabbing}
@@ -196,7 +196,7 @@ textarea.names-input{width:100%;flex:1;border:1px solid #ddd;border-radius:8px;p
 </div></div>
 <div class="copyright">Copyright © Liyuchiutiger Gongminshen</div>
 <script>
-const bgMax=10; // ★若新增背景圖片，請修改此數字 (例如 background007.png 則改為 7)★
+const bgMax=10;
 const workspace=document.getElementById('workspace'),audioCtx=new(window.AudioContext||window.webkitAudioContext)(),titles={'media':'連結','randomizer':'隨機抽籤','text':'文字公告','traffic':'紅綠燈','timer':'倒數計時','stopwatch':'碼錶','clock':'時鐘','calendar':'日曆','scoreboard':'記分板','dice':'擲骰子','draw':'畫板'};
 let lastSelection=null,clearTimer=null;
 function toggleToolbar(){const w=document.getElementById('toolbarWrapper');w.classList.toggle('minimized');document.getElementById('toggleIcon').className=w.classList.contains('minimized')?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'}
@@ -266,13 +266,91 @@ function renderMediaItem(c,n,u){c.appendChild(createMediaItemDOM(n,u))}
 function createMediaItemDOM(n,u){const i=document.createElement('div');i.className='media-item-row';i.draggable=!0;i.dataset.name=n;i.dataset.url=u;i.innerHTML=`<div class="media-drag-handle"><i class="fa-solid fa-grip-vertical"></i></div><a href="${u}" target="_blank" class="clean-link-btn"><i class="fa-solid fa-link"></i> ${n}</a><div class="media-actions-inline"><div class="action-icon edit" onclick="editMediaItem(this)"><i class="fa-solid fa-pen"></i></div><div class="action-icon del" onclick="this.closest('.media-item-row').remove()"><i class="fa-solid fa-trash-can"></i></div></div>`;i.addEventListener('dragstart',()=>i.classList.add('dragging'));i.addEventListener('dragend',()=>i.classList.remove('dragging'));return i}
 function getMediaDragAfterElement(c,y){return [...c.querySelectorAll('.media-item-row:not(.dragging)')].reduce((cl,ch)=>{const b=ch.getBoundingClientRect(),o=y-b.top-b.height/2;return(o<0&&o>cl.offset)?{offset:o,element:ch}:cl},{offset:Number.NEGATIVE_INFINITY}).element}
 function editMediaItem(btn){const i=btn.closest('.media-item-row');showMediaForm(i.closest('.widget-content').querySelector('.add-light-btn'),i.dataset.name,i.dataset.url);window.currentEditingMedia=i}
+
+// -----------------------------------------------------
+// ★ 修正後的拖曳功能 (支援手機觸控) ★
+// -----------------------------------------------------
 function makeDraggable(el){
-    let pos1=0,pos2=0,pos3=0,pos4=0;
-    el.onmousedown=e=>{if(el.id!=='mascot'&&(e.target.matches('input,textarea,button,select,i,canvas,.light,.pasted-img-wrapper')||e.target.closest('.opacity-slider-container,.media-form,.media-item-row,.link-input-area')||e.target.isContentEditable))return;
-        if(el.id!=='mascot'){const r=el.getBoundingClientRect();if(e.clientX>r.right-20&&e.clientY>r.bottom-20)return;document.querySelectorAll('.widget').forEach(w=>w.style.zIndex=10);el.style.zIndex=100}else if(!el.style.top){const r=el.getBoundingClientRect();el.style.bottom='auto';el.style.left=r.left+'px';el.style.top=r.top+'px'}
-        e.preventDefault();pos3=e.clientX;pos4=e.clientY;document.onmouseup=()=>(document.onmouseup=document.onmousemove=null);document.onmousemove=ev=>{ev.preventDefault();pos1=pos3-ev.clientX;pos2=pos4-ev.clientY;pos3=ev.clientX;pos4=ev.clientY;el.style.top=(el.offsetTop-pos2)+"px";el.style.left=(el.offsetLeft-pos1)+"px";if(el.id==='mascot')el.dataset.moved='true'}
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+
+    function dragStart(e) {
+        // 如果是觸控，取得第一個觸控點
+        const evt = e.touches ? e.touches[0] : e;
+        
+        // 1. 檢查是否點擊到輸入框、按鈕等互動元件 (不觸發拖曳)
+        if(e.target.matches('input, textarea, button, select, i, canvas, .light, .pasted-img-wrapper') || 
+           e.target.closest('.opacity-slider-container, .media-form, .media-item-row, .link-input-area') || 
+           e.target.isContentEditable) {
+            return;
+        }
+
+        // 2. 檢查是否點擊到右下角 (保留給縮放使用)
+        // 取得元素的邊界
+        const rect = el.getBoundingClientRect();
+        // 如果點擊位置距離右邊界和下邊界都在 20px 以內，視為縮放，不執行拖曳
+        if (evt.clientX > rect.right - 20 && evt.clientY > rect.bottom - 20) {
+            return;
+        }
+
+        // 開始拖曳邏輯
+        isDragging = true;
+        startX = evt.clientX;
+        startY = evt.clientY;
+        initialLeft = el.offsetLeft;
+        initialTop = el.offsetTop;
+
+        // 設定層級 z-index
+        if(el.id !== 'mascot'){
+            document.querySelectorAll('.widget').forEach(w => w.style.zIndex = 10);
+            el.style.zIndex = 100;
+        } else if(!el.style.top){
+            // 吉祥物第一次拖曳時的初始化
+            el.style.bottom = 'auto';
+            el.style.left = rect.left + 'px';
+            el.style.top = rect.top + 'px';
+        }
+
+        // 綁定移動和結束事件
+        if (e.type === 'touchstart') {
+            document.addEventListener('touchmove', dragMove, { passive: false });
+            document.addEventListener('touchend', dragEnd, { passive: false });
+        } else {
+            document.addEventListener('mousemove', dragMove);
+            document.addEventListener('mouseup', dragEnd);
+        }
     }
+
+    function dragMove(e) {
+        if (!isDragging) return;
+        
+        // ★ 關鍵：阻止預設捲動行為，讓拖曳順暢 ★
+        if (e.cancelable) e.preventDefault();
+
+        const evt = e.touches ? e.touches[0] : e;
+        const dx = evt.clientX - startX;
+        const dy = evt.clientY - startY;
+
+        el.style.left = (initialLeft + dx) + "px";
+        el.style.top = (initialTop + dy) + "px";
+
+        if(el.id === 'mascot') el.dataset.moved = 'true';
+    }
+
+    function dragEnd() {
+        isDragging = false;
+        // 移除監聽
+        document.removeEventListener('mousemove', dragMove);
+        document.removeEventListener('mouseup', dragEnd);
+        document.removeEventListener('touchmove', dragMove);
+        document.removeEventListener('touchend', dragEnd);
+    }
+
+    // 綁定開始事件 (注意 passive: false 對於 touchstart 很重要)
+    el.addEventListener('mousedown', dragStart);
+    el.addEventListener('touchstart', dragStart, { passive: false });
 }
+
 makeDraggable(document.getElementById('mascot'));
 function formatText(c,v=null){document.execCommand(c,!1,v)}
 function applyFontSize(s){const sel=window.getSelection();if(sel.rangeCount){const sp=document.createElement("span");sp.style.fontSize=s+"px";sp.innerHTML=sel.toString();sel.getRangeAt(0).deleteContents();sel.getRangeAt(0).insertNode(sp)}}
