@@ -6,408 +6,2145 @@
 <title>LiyuChillGuy螢幕顯示系統</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-:root{--primary-color:#4a90e2;--accent-color:#ff5f57;--glass-bg:rgba(255,255,255,0.95);--glass-border:rgba(255,255,255,0.6);--shadow-lg:0 15px 35px rgba(0,0,0,0.15);--shadow-sm:0 5px 15px rgba(0,0,0,0.08);--text-main:#2c3e50;--radius-lg:16px}
-*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent;outline:none;touch-action: manipulation;}
-input,textarea,[contenteditable]{user-select:text;cursor:text}
-body{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;background:url('background/background001.png') no-repeat center center fixed;background-size:cover;background-color:#eef2f5;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;transition:background 0.5s ease}
-#workspace{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
-#mascot{position:absolute;bottom:15px;left:20px;width:120px;height:auto;z-index:150;cursor:grab;filter:drop-shadow(2px 4px 6px rgba(0,0,0,0.3));pointer-events:auto;transition:transform .2s;touch-action: none;}
-#mascot:active{cursor:grabbing}
-#mascot:hover{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 15px #ff00de);transform:scale(1.05) rotate(-5deg)}
-.toolbar-wrapper{position:relative;margin-bottom:30px;z-index:100;display:flex;flex-direction:column;align-items:center;transition:transform .4s cubic-bezier(0.68,-0.55,0.27,1.55);pointer-events:auto}
-.toolbar-wrapper.minimized{transform:translateY(120%)}
-.toggle-bar-btn{position:absolute;top:-40px;left:50%;transform:translateX(-50%);background:var(--glass-bg);backdrop-filter:blur(10px);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);cursor:pointer;color:var(--text-main);border:1px solid var(--glass-border);transition:.3s}
-.toggle-bar-btn:hover{background:#fff;color:var(--primary-color)}
-.toolbar-container{background:var(--glass-bg);backdrop-filter:blur(15px);border:1px solid var(--glass-border);border-radius:20px;padding:12px 25px;box-shadow:var(--shadow-lg);display:flex;gap:12px;overflow-x:auto;max-width:90vw;scrollbar-width:none}
-.toolbar-container::-webkit-scrollbar{display:none}
-.tool-btn{display:flex;flex-direction:column;align-items:center;cursor:pointer;color:#555;min-width:60px;transition:.2s;position:relative}
-.tool-btn:active{transform:scale(.92)}
-.tool-btn:hover{color:var(--primary-color)}
-.tool-btn.danger:hover{color:var(--accent-color)}
-.tool-btn.confirm-state .tool-icon{background:var(--accent-color);color:#fff;transform:rotate(15deg)}
-.tool-btn.confirm-state .tool-label{color:var(--accent-color);font-weight:800}
-.tool-icon{font-size:20px;margin-bottom:6px;background:rgba(255,255,255,.6);width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.05);transition:.2s}
-.tool-btn:hover .tool-icon{background:#fff;transform:translateY(-3px);box-shadow:0 5px 10px rgba(0,0,0,.1)}
-.tool-label{font-size:12px;font-weight:600;white-space:nowrap}
-.tool-divider{width:1px;background:rgba(0,0,0,.1);margin:5px 0}
-.effects-menu{position:fixed;bottom:30px;right:30px;z-index:200;display:flex;flex-direction:column-reverse;gap:10px;align-items:center}
-.fab-main{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;box-shadow:0 4px 15px rgba(0,0,0,.3);font-size:24px;cursor:pointer;transition:transform .3s cubic-bezier(0.175,0.885,0.32,1.275);display:flex;align-items:center;justify-content:center}
-.fab-main:hover{transform:scale(1.1)}
-.fab-main.active{transform:rotate(45deg)}
-.fab-options{display:flex;flex-direction:column-reverse;gap:10px;opacity:0;pointer-events:none;transform:translateY(20px);transition:.3s;margin-bottom:10px}
-.effects-menu.open .fab-options{opacity:1;pointer-events:auto;transform:translateY(0)}
-.fab-item{width:48px;height:48px;border-radius:50%;border:none;color:#fff;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:20px;transition:.2s;position:relative}
-.fab-item:hover{transform:scale(1.1) translateX(-3px)}
-.fab-item::after{content:attr(data-tooltip);position:absolute;right:60px;background:rgba(0,0,0,.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;transition:.2s}
-.fab-item:hover::after{opacity:1}
-#effects-layer{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;overflow:hidden}
-.particle{position:absolute;pointer-events:none;animation:fadeOut 1.5s forwards}
-.float-emoji{position:absolute;bottom:-50px;font-size:40px;animation:floatUp 3s ease-in forwards;opacity:0}
-@keyframes floatUp{0%{bottom:-50px;opacity:1;transform:translateX(0) scale(.5)}50%{opacity:1}100%{bottom:80%;opacity:0;transform:translateX(var(--x-sway)) scale(1.5)}}
-@keyframes fadeOut{to{opacity:0;transform:translateY(20px)}}
-.widget{position:absolute;background:var(--glass-bg);backdrop-filter:blur(12px);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);min-width:250px;min-height:150px;display:flex;flex-direction:column;pointer-events:auto;animation:popIn .3s cubic-bezier(0.34,1.56,0.64,1);z-index:10;border:1px solid var(--glass-border);resize:both;overflow:hidden;transition:background-color .2s;touch-action: none;}
-@keyframes popIn{from{transform:scale(.9) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
-.widget-header{padding:8px 15px;background:rgba(248,249,250,.5);cursor:grab;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(0,0,0,.05);flex-shrink:0}
-.widget-header:active{cursor:grabbing}
-.widget-title{font-size:13px;color:#666;font-weight:700;letter-spacing:1px}
-.header-controls{display:flex;gap:6px;align-items:center}
-.ctrl-btn{cursor:pointer;color:#999;font-size:14px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:.2s;position:relative}
-.ctrl-btn:hover{background:rgba(0,0,0,.05);color:var(--primary-color)}
-.close-btn:hover{background:#ff5f57;color:#fff}
-.opacity-slider-container{display:none;position:absolute;top:100%;right:0;background:#fff;padding:5px 10px;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,.2);z-index:100;border:1px solid #eee;width:120px}
-.opacity-slider-container.show{display:block}
-.opacity-slider{width:100%;cursor:pointer}
-.widget-content{flex:1;padding:15px;display:flex;flex-direction:column;align-items:center;overflow:auto;width:100%;height:100%;position:relative;cursor:default}
-.widget-content::-webkit-scrollbar{width:6px;height:6px}
-.widget-content::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:3px}
-.media-list{width:100%;display:flex;flex-direction:column;gap:8px;flex:1}
-.media-item-row{display:flex;align-items:center;gap:8px;width:100%;transition:.2s;padding:2px;border-radius:6px}
-.media-item-row.dragging{opacity:.5;border:2px dashed #999;background:rgba(0,0,0,.05)}
-.media-drag-handle{cursor:grab;color:#ccc;padding:0 2px;display:flex;align-items:center}
-.media-drag-handle:hover{color:#999}
-.clean-link-btn{flex:1;background:var(--primary-color);color:#fff;text-decoration:none;padding:10px 15px;border-radius:6px;font-weight:bold;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.clean-link-btn:hover{background:#357abd;transform:translateY(-1px)}
-.media-actions-inline{display:flex;gap:4px}
-.action-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#999;border-radius:6px;transition:.2s;background:#fff;border:1px solid #eee}
-.action-icon:hover{background:#eee;color:var(--primary-color)}
-.action-icon.del:hover{color:var(--accent-color)}
-.media-form{width:100%;background:#f0f4f8;padding:10px;border-radius:8px;display:none;flex-direction:column;gap:8px;margin-bottom:10px}
-.media-form.show{display:flex}
-.media-input{padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px}
-.media-form-btns{display:flex;gap:5px;justify-content:flex-end}
-.form-btn{padding:5px 12px;border-radius:4px;border:none;cursor:pointer;font-size:12px;font-weight:bold}
-.form-btn.save{background:var(--primary-color);color:#fff}
-.form-btn.cancel{background:#ddd;color:#555}
-.text-toolbar{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid #eee;padding-bottom:8px;width:100%;flex-wrap:wrap;align-items:center;position:relative}
-.color-btn-wrapper{position:relative;width:28px;height:28px;border:1px solid #ddd;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff;cursor:pointer}
-.color-btn-wrapper:hover{background:#f0f0f0;color:var(--primary-color)}
-.color-btn-wrapper i{font-size:13px;color:#555;pointer-events:none;z-index:1}
-.color-input-overlay{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;padding:0;border:none}
-.text-btn{background:#fff;border:1px solid #ddd;border-radius:4px;cursor:pointer;min-width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#555;padding:0 5px}
-.text-btn:hover{background:#f0f0f0;color:var(--primary-color)}
-.text-btn.active{background:var(--primary-color);color:#fff}
-.text-select{height:28px;border:1px solid #ddd;border-radius:4px;font-size:12px;color:#333;background:#fff;outline:none}
-.text-editor{width:100%;height:100%;min-height:120px;outline:none;cursor:text;font-size:18px;line-height:1.5;padding:10px;color:#333;background:0 0;overflow-y:auto}
-.text-editor:empty:before{content:attr(placeholder);color:#aaa;font-style:italic;pointer-events:none;display:block}
-.text-editor:focus:before{content:none}
-.text-editor ul,.text-editor ol{margin-left:20px}
-.text-editor a{color:var(--primary-color);text-decoration:underline;cursor:pointer}
-.text-editor.marquee-mode{overflow:hidden;white-space:nowrap;cursor:default;display:flex;align-items:center}
-.text-editor.marquee-mode .marquee-content{display:inline-block;padding-left:100%;animation:marquee 10s linear infinite}
-@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
-.link-input-area{display:none;position:absolute;top:100%;left:0;background:#fff;padding:5px;border:1px solid #ddd;border-radius:4px;box-shadow:0 3px 10px rgba(0,0,0,0.1);z-index:50;width:100%;align-items:center;gap:5px}
-.link-input-area.show{display:flex}
-.link-text-input{flex:1;border:1px solid #ddd;padding:3px 5px;font-size:12px;border-radius:3px}
-.stopwatch-display{font-size:3.5rem;font-family:monospace;margin:10px 0;color:#333}
-.lap-list{width:100%;margin-top:10px;border-top:1px solid #eee;max-height:150px;overflow-y:auto;font-size:13px}
-.lap-item{display:flex;align-items:center;padding:5px 0;border-bottom:1px solid #f0f0f0}
-.lap-idx{font-weight:bold;width:30px;color:#999}
-.lap-time{font-family:monospace;font-weight:bold;width:80px;color:var(--primary-color)}
-.lap-note{flex:1;border:none;background:#f8f9fa;padding:3px 8px;border-radius:4px;font-size:12px}
-.draw-wrapper{display:flex;flex-direction:column;align-items:center;width:100%;height:100%}
-.draw-tools{display:flex;gap:8px;margin-bottom:10px;background:#fff;padding:8px 12px;border-radius:30px;box-shadow:var(--shadow-sm);flex-wrap:wrap;justify-content:center}
-.color-pick{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.2);transition:.2s;position:relative}
-.color-pick.active{transform:scale(1.2);border-color:#333;z-index:2}
-.tool-separator{width:1px;height:20px;background:#ddd;margin:0 5px}
-.draw-btn{font-size:14px;color:#666;cursor:pointer;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:.2s}
-.draw-btn.active{background:var(--primary-color);color:#fff}
-.canvas-container{flex:1;width:100%;min-height:200px;position:relative;border:2px dashed #ccc;border-radius:10px;overflow:hidden;background-color:#fff;background-size:20px 20px}
-.canvas-container.bg-grid{background-image:linear-gradient(#e5e5e5 1px,transparent 1px),linear-gradient(90deg,#e5e5e5 1px,transparent 1px)}
-.canvas-container.bg-lines{background-image:repeating-linear-gradient(0deg,transparent,transparent 29px,#e5e5e5 30px);background-size:100% 30px}
-.canvas-container.bg-white{background-image:none}
-canvas{display:block;position:absolute;top:0;left:0;z-index:10;cursor:crosshair}
-.canvas-container.mode-move canvas{pointer-events:none;opacity:.6}
-.img-layer{position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;overflow:hidden}
-.pasted-img-wrapper{position:absolute;display:inline-block;cursor:grab;border:1px solid transparent}
-.pasted-img-wrapper:hover{border:1px dashed #999}
-.pasted-img-wrapper.selected{border:1px solid var(--primary-color)}
-.pasted-img-wrapper img{width:100%;height:100%;pointer-events:none;display:block}
-.resize-handle{position:absolute;bottom:-5px;right:-5px;width:12px;height:12px;background:var(--primary-color);cursor:nwse-resize;border-radius:50%;display:none}
-.pasted-img-wrapper:hover .resize-handle,.pasted-img-wrapper.selected .resize-handle{display:block}
-.bg-menu{display:none;position:absolute;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);padding:8px;border-radius:12px;box-shadow:var(--shadow-lg);flex-direction:column;gap:4px;z-index:200;min-width:140px;max-height:300px;overflow-y:auto}
-.bg-menu.show{display:flex;animation:fadeInUp .2s}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.bg-option{padding:8px 12px;cursor:pointer;font-size:13px;border-radius:6px;color:#333}
-.bg-option:hover{background:#f0f4f8;color:var(--primary-color);font-weight:bold}
-.traffic-container{display:flex;flex-direction:column;gap:8px;width:100%;padding-bottom:10px}
-.traffic-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.5);padding:5px 10px;border-radius:30px;transition:.2s}
-.traffic-row.dragging{opacity:.5;border:2px dashed #999}
-.drag-handle{cursor:grab;color:#aaa;font-size:14px;padding:0 5px}
-.light{width:40px;height:40px;border-radius:50%;opacity:.3;cursor:pointer;border:2px solid rgba(0,0,0,.1);transition:.3s;flex-shrink:0;box-shadow:inset 0 2px 5px rgba(0,0,0,.1)}
-.light.active{opacity:1;transform:scale(1.1);box-shadow:0 0 15px currentColor;border-color:transparent}
-.traffic-input{flex:1;border:none;padding:5px;font-size:16px;background:0 0;color:var(--text-main);font-weight:500;min-width:0}
-.traffic-del{cursor:pointer;color:#ccc;font-size:14px;padding:5px}
-.traffic-del:hover{color:#ff5f57}
-.traffic-hide-text .traffic-input,.traffic-hide-text .traffic-del,.traffic-hide-text .drag-handle{display:none}
-.traffic-hide-text .traffic-row{background:0 0;width:fit-content;margin:0 auto;padding:0;gap:0}
-.traffic-hide-text .light{margin:5px 0;width:60px;height:60px}
-.add-light-btn{font-size:13px;color:#666;background:rgba(255,255,255,.6);border:1px solid rgba(0,0,0,.1);padding:6px 12px;border-radius:20px;cursor:pointer;align-self:center;margin-top:5px}
-.timer-wrapper{text-align:center;width:100%}
-.timer-display{font-size:4.5rem;font-weight:700;font-family:'Courier New',monospace;color:#333;text-shadow:2px 2px 0 rgba(255,255,255,.5);display:flex;justify-content:center}
-.timer-input{width:110px;font-size:4.5rem;text-align:center;border:none;background:0 0;color:inherit;font-family:inherit;font-weight:inherit;border-bottom:2px solid transparent}
-.timer-input:focus{border-bottom:2px solid var(--primary-color)}
-.timer-controls{display:flex;gap:15px;justify-content:center;align-items:center;margin-top:15px}
-.timer-btn{padding:10px 20px;border:none;border-radius:50px;cursor:pointer;background:var(--primary-color);color:#fff;font-size:15px;font-weight:bold;box-shadow:0 4px 10px rgba(74,144,226,.3);display:flex;align-items:center;gap:5px}
-.timer-btn.reset{background:#e0e0e0;color:#555;box-shadow:none}
-.score-container{display:flex;gap:15px;overflow-x:auto;width:100%;padding:10px 5px}
-.score-team{display:flex;flex-direction:column;align-items:center;background:#fff;padding:15px;border-radius:12px;min-width:120px;position:relative;border:1px solid #eee}
-.score-num{font-size:3rem;font-weight:800;margin:10px 0;color:var(--text-main);line-height:1}
-.score-ctrl-btn{width:32px;height:32px;border-radius:50%;border:none;background:#f0f0f0;color:#555;font-size:18px;font-weight:bold;cursor:pointer}
-.score-ctrl-btn:hover{background:var(--primary-color);color:#fff;transform:scale(1.1)}
-.random-result{font-size:2.5rem;font-weight:800;color:var(--primary-color);min-height:60px;margin:10px 0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.5);border-radius:10px;width:100%}
-textarea.names-input{width:100%;flex:1;border:1px solid #ddd;border-radius:8px;padding:10px;resize:none;font-size:14px;background:rgba(255,255,255,.8)}
-.copyright{position:absolute;bottom:5px;width:100%;text-align:center;color:rgba(0,0,0,.4);font-size:11px;z-index:50;font-weight:600;font-family:monospace}
-#importFile{display:none}
+:root {
+    --primary-color: #4a90e2;
+    --accent-color: #ff5f57;
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.15);
+    --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.08);
+    --text-main: #2c3e50;
+    --radius-lg: 16px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    touch-action: manipulation;
+}
+
+input, textarea, [contenteditable] {
+    user-select: text;
+    cursor: text;
+}
+
+body {
+    font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+    background: url('background/background001.png') no-repeat center center fixed;
+    background-size: cover;
+    background-color: #eef2f5;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    transition: background 0.5s ease;
+}
+
+#workspace {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+#mascot {
+    position: absolute;
+    bottom: 15px;
+    left: 20px;
+    width: 120px;
+    height: auto;
+    z-index: 150;
+    cursor: grab;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
+    pointer-events: auto;
+    transition: transform .2s;
+    touch-action: none;
+}
+
+#mascot:active {
+    cursor: grabbing;
+}
+
+#mascot:hover {
+    filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 15px #ff00de);
+    transform: scale(1.05) rotate(-5deg);
+}
+
+.toolbar-wrapper {
+    position: relative;
+    margin-bottom: 30px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform .4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    pointer-events: auto;
+}
+
+.toolbar-wrapper.minimized {
+    transform: translateY(120%);
+}
+
+.toggle-bar-btn {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    color: var(--text-main);
+    border: 1px solid var(--glass-border);
+    transition: .3s;
+}
+
+.toggle-bar-btn:hover {
+    background: #fff;
+    color: var(--primary-color);
+}
+
+.toolbar-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 12px 25px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    max-width: 90vw;
+    scrollbar-width: none;
+}
+
+.toolbar-container::-webkit-scrollbar {
+    display: none;
+}
+
+.tool-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    color: #555;
+    min-width: 60px;
+    transition: .2s;
+    position: relative;
+}
+
+.tool-btn:active {
+    transform: scale(.92);
+}
+
+.tool-btn:hover {
+    color: var(--primary-color);
+}
+
+.tool-btn.danger:hover {
+    color: var(--accent-color);
+}
+
+.tool-btn.confirm-state .tool-icon {
+    background: var(--accent-color);
+    color: #fff;
+    transform: rotate(15deg);
+}
+
+.tool-btn.confirm-state .tool-label {
+    color: var(--accent-color);
+    font-weight: 800;
+}
+
+.tool-icon {
+    font-size: 20px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, .6);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .05);
+    transition: .2s;
+}
+
+.tool-btn:hover .tool-icon {
+    background: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
+}
+
+.tool-label {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tool-divider {
+    width: 1px;
+    background: rgba(0, 0, 0, .1);
+    margin: 5px 0;
+}
+
+.effects-menu {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    align-items: center;
+}
+
+.fab-main {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, .3);
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fab-main:hover {
+    transform: scale(1.1);
+}
+
+.fab-main.active {
+    transform: rotate(45deg);
+}
+
+.fab-options {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: .3s;
+    margin-bottom: 10px;
+}
+
+.effects-menu.open .fab-options {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.fab-item {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, .2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: .2s;
+    position: relative;
+}
+
+.fab-item:hover {
+    transform: scale(1.1) translateX(-3px);
+}
+
+.fab-item::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    right: 60px;
+    background: rgba(0, 0, 0, .7);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: .2s;
+}
+
+.fab-item:hover::after {
+    opacity: 1;
+}
+
+#effects-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    pointer-events: none;
+    animation: fadeOut 1.5s forwards;
+}
+
+.float-emoji {
+    position: absolute;
+    bottom: -50px;
+    font-size: 40px;
+    animation: floatUp 3s ease-in forwards;
+    opacity: 0;
+}
+
+@keyframes floatUp {
+    0% { bottom: -50px; opacity: 1; transform: translateX(0) scale(.5); }
+    50% { opacity: 1; }
+    100% { bottom: 80%; opacity: 0; transform: translateX(var(--x-sway)) scale(1.5); }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(20px); }
+}
+
+.widget {
+    position: absolute;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    min-width: 250px;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+    animation: popIn .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 10;
+    border: 1px solid var(--glass-border);
+    resize: both;
+    overflow: hidden;
+    transition: background-color .2s;
+    touch-action: none;
+}
+
+@keyframes popIn {
+    from { transform: scale(.9) translateY(20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.widget-header {
+    padding: 8px 15px;
+    background: rgba(248, 249, 250, .5);
+    cursor: grab;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, .05);
+    flex-shrink: 0;
+}
+
+.widget-header:active {
+    cursor: grabbing;
+}
+
+.widget-title {
+    font-size: 13px;
+    color: #666;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.header-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.ctrl-btn {
+    cursor: pointer;
+    color: #999;
+    font-size: 14px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: .2s;
+    position: relative;
+}
+
+.ctrl-btn:hover {
+    background: rgba(0, 0, 0, .05);
+    color: var(--primary-color);
+}
+
+.close-btn:hover {
+    background: #ff5f57;
+    color: #fff;
+}
+
+.opacity-slider-container {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #fff;
+    padding: 5px 10px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, .2);
+    z-index: 100;
+    border: 1px solid #eee;
+    width: 120px;
+}
+
+.opacity-slider-container.show {
+    display: block;
+}
+
+.opacity-slider {
+    width: 100%;
+    cursor: pointer;
+}
+
+.widget-content {
+    flex: 1;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: auto;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    cursor: default;
+}
+
+.widget-content::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.widget-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, .1);
+    border-radius: 3px;
+}
+
+.media-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.media-item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    transition: .2s;
+    padding: 2px;
+    border-radius: 6px;
+}
+
+.media-item-row.dragging {
+    opacity: .5;
+    border: 2px dashed #999;
+    background: rgba(0, 0, 0, .05);
+}
+
+.media-drag-handle {
+    cursor: grab;
+    color: #ccc;
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+}
+
+.media-drag-handle:hover {
+    color: #999;
+}
+
+.clean-link-btn {
+    flex: 1;
+    background: var(--primary-color);
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: .2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.clean-link-btn:hover {
+    background: #357abd;
+    transform: translateY(-1px);
+}
+
+.media-actions-inline {
+    display: flex;
+    gap: 4px;
+}
+
+.action-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #999;
+    border-radius: 6px;
+    transition: .2s;
+    background: #fff;
+    border: 1px solid #eee;
+}
+
+.action-icon:hover {
+    background: #eee;
+    color: var(--primary-color);
+}
+
+.action-icon.del:hover {
+    color: var(--accent-color);
+}
+
+.media-form {
+    width: 100%;
+    background: #f0f4f8;
+    padding: 10px;
+    border-radius: 8px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.media-form.show {
+    display: flex;
+}
+
+.media-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.media-form-btns {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.form-btn {
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.form-btn.save {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.form-btn.cancel {
+    background: #ddd;
+    color: #555;
+}
+
+.text-toolbar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    position: relative;
+}
+
+.color-btn-wrapper {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #fff;
+    cursor: pointer;
+}
+
+.color-btn-wrapper:hover {
+    background: #f0f0f0;
+    color: var(--primary-color);
+}
+
+.color-btn-wrapper i {
+    font-size: 13px;
+    color: #555;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.color-input-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+    padding: 0;
+    border: none;
+}
+
+.text-btn {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #555;
+    padding: 0 5px;
+}
+
+.text-btn:hover {
+    background: #f0f0f0;
+    color: var(--primary-color);
+}
+
+.text-btn.active {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.text-select {
+    height: 28px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #333;
+    background: #fff;
+    outline: none;
+}
+
+.text-editor {
+    width: 100%;
+    height: 100%;
+    min-height: 120px;
+    outline: none;
+    cursor: text;
+    font-size: 18px;
+    line-height: 1.5;
+    padding: 10px;
+    color: #333;
+    background: 0 0;
+    overflow-y: auto;
+}
+
+.text-editor:empty:before {
+    content: attr(placeholder);
+    color: #aaa;
+    font-style: italic;
+    pointer-events: none;
+    display: block;
+}
+
+.text-editor:focus:before {
+    content: none;
+}
+
+.text-editor ul, .text-editor ol {
+    margin-left: 20px;
+}
+
+.text-editor a {
+    color: var(--primary-color);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.text-editor.marquee-mode {
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: default;
+    display: flex;
+    align-items: center;
+}
+
+.text-editor.marquee-mode .marquee-content {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 10s linear infinite;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+.link-input-area {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #fff;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    width: 100%;
+    align-items: center;
+    gap: 5px;
+}
+
+.link-input-area.show {
+    display: flex;
+}
+
+.link-text-input {
+    flex: 1;
+    border: 1px solid #ddd;
+    padding: 3px 5px;
+    font-size: 12px;
+    border-radius: 3px;
+}
+
+.stopwatch-display {
+    font-size: 3.5rem;
+    font-family: monospace;
+    margin: 10px 0;
+    color: #333;
+}
+
+.lap-list {
+    width: 100%;
+    margin-top: 10px;
+    border-top: 1px solid #eee;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 13px;
+}
+
+.lap-item {
+    display: flex;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.lap-idx {
+    font-weight: bold;
+    width: 30px;
+    color: #999;
+}
+
+.lap-time {
+    font-family: monospace;
+    font-weight: bold;
+    width: 80px;
+    color: var(--primary-color);
+}
+
+.lap-note {
+    flex: 1;
+    border: none;
+    background: #f8f9fa;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.draw-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.draw-tools {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 30px;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.color-pick {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
+    transition: .2s;
+    position: relative;
+}
+
+.color-pick.active {
+    transform: scale(1.2);
+    border-color: #333;
+    z-index: 2;
+}
+
+.tool-separator {
+    width: 1px;
+    height: 20px;
+    background: #ddd;
+    margin: 0 5px;
+}
+
+.draw-btn {
+    font-size: 14px;
+    color: #666;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .2s;
+}
+
+.draw-btn.active {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.canvas-container {
+    flex: 1;
+    width: 100%;
+    min-height: 200px;
+    position: relative;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+    background-size: 20px 20px;
+}
+
+.canvas-container.bg-grid {
+    background-image: linear-gradient(#e5e5e5 1px, transparent 1px), linear-gradient(90deg, #e5e5e5 1px, transparent 1px);
+}
+
+.canvas-container.bg-lines {
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 29px, #e5e5e5 30px);
+    background-size: 100% 30px;
+}
+
+.canvas-container.bg-white {
+    background-image: none;
+}
+
+canvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    cursor: crosshair;
+}
+
+.canvas-container.mode-move canvas {
+    pointer-events: none;
+    opacity: .6;
+}
+
+.img-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    overflow: hidden;
+}
+
+.pasted-img-wrapper {
+    position: absolute;
+    display: inline-block;
+    cursor: grab;
+    border: 1px solid transparent;
+}
+
+.pasted-img-wrapper:hover {
+    border: 1px dashed #999;
+}
+
+.pasted-img-wrapper.selected {
+    border: 1px solid var(--primary-color);
+}
+
+.pasted-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    display: block;
+}
+
+.resize-handle {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    background: var(--primary-color);
+    cursor: nwse-resize;
+    border-radius: 50%;
+    display: none;
+}
+
+.pasted-img-wrapper:hover .resize-handle, .pasted-img-wrapper.selected .resize-handle {
+    display: block;
+}
+
+.bg-menu {
+    display: none;
+    position: absolute;
+    background: rgba(255, 255, 255, .95);
+    backdrop-filter: blur(10px);
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    flex-direction: column;
+    gap: 4px;
+    z-index: 200;
+    min-width: 140px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.bg-menu.show {
+    display: flex;
+    animation: fadeInUp .2s;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.bg-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    border-radius: 6px;
+    color: #333;
+}
+
+.bg-option:hover {
+    background: #f0f4f8;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.traffic-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    padding-bottom: 10px;
+}
+
+.traffic-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, .5);
+    padding: 5px 10px;
+    border-radius: 30px;
+    transition: .2s;
+}
+
+.traffic-row.dragging {
+    opacity: .5;
+    border: 2px dashed #999;
+}
+
+.drag-handle {
+    cursor: grab;
+    color: #aaa;
+    font-size: 14px;
+    padding: 0 5px;
+}
+
+.light {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    opacity: .3;
+    cursor: pointer;
+    border: 2px solid rgba(0, 0, 0, .1);
+    transition: .3s;
+    flex-shrink: 0;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, .1);
+}
+
+.light.active {
+    opacity: 1;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px currentColor;
+    border-color: transparent;
+}
+
+.traffic-input {
+    flex: 1;
+    border: none;
+    padding: 5px;
+    font-size: 16px;
+    background: 0 0;
+    color: var(--text-main);
+    font-weight: 500;
+    min-width: 0;
+}
+
+.traffic-del {
+    cursor: pointer;
+    color: #ccc;
+    font-size: 14px;
+    padding: 5px;
+}
+
+.traffic-del:hover {
+    color: #ff5f57;
+}
+
+.traffic-hide-text .traffic-input, .traffic-hide-text .traffic-del, .traffic-hide-text .drag-handle {
+    display: none;
+}
+
+.traffic-hide-text .traffic-row {
+    background: 0 0;
+    width: fit-content;
+    margin: 0 auto;
+    padding: 0;
+    gap: 0;
+}
+
+.traffic-hide-text .light {
+    margin: 5px 0;
+    width: 60px;
+    height: 60px;
+}
+
+.add-light-btn {
+    font-size: 13px;
+    color: #666;
+    background: rgba(255, 255, 255, .6);
+    border: 1px solid rgba(0, 0, 0, .1);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    align-self: center;
+    margin-top: 5px;
+}
+
+.timer-wrapper {
+    text-align: center;
+    width: 100%;
+}
+
+.timer-display {
+    font-size: 4.5rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: #333;
+    text-shadow: 2px 2px 0 rgba(255, 255, 255, .5);
+    display: flex;
+    justify-content: center;
+}
+
+.timer-input {
+    width: 110px;
+    font-size: 4.5rem;
+    text-align: center;
+    border: none;
+    background: 0 0;
+    color: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    border-bottom: 2px solid transparent;
+}
+
+.timer-input:focus {
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.timer-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.timer-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(74, 144, 226, .3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.timer-btn.reset {
+    background: #e0e0e0;
+    color: #555;
+    box-shadow: none;
+}
+
+.score-container {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    width: 100%;
+    padding: 10px 5px;
+}
+
+.score-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    min-width: 120px;
+    position: relative;
+    border: 1px solid #eee;
+}
+
+.score-num {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 10px 0;
+    color: var(--text-main);
+    line-height: 1;
+}
+
+.score-ctrl-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #f0f0f0;
+    color: #555;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.score-ctrl-btn:hover {
+    background: var(--primary-color);
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.random-result {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    min-height: 60px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, .5);
+    border-radius: 10px;
+    width: 100%;
+}
+
+textarea.names-input {
+    width: 100%;
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    resize: none;
+    font-size: 14px;
+    background: rgba(255, 255, 255, .8);
+}
+
+.copyright {
+    position: absolute;
+    bottom: 5px;
+    width: 100%;
+    text-align: center;
+    color: rgba(0, 0, 0, .4);
+    font-size: 11px;
+    z-index: 50;
+    font-weight: 600;
+    font-family: monospace;
+}
+
+#importFile {
+    display: none;
+}
 </style>
 </head>
 <body>
-<div id="workspace"></div><div id="effects-layer"></div>
+<div id="workspace"></div>
+<div id="effects-layer"></div>
 <img src="image/LiyuChillGuy.svg" alt="LiyuChillGuy" id="mascot" title="按我一下!">
 <input type="file" id="importFile" accept=".json" onchange="loadState(this)">
+
 <div class="effects-menu" id="effectsMenu">
-<div class="fab-options">
-<button class="fab-item" data-tooltip="狂賀" onclick="triggerEffect('firework')" style="background:#e67e22">🎊</button>
-<button class="fab-item" data-tooltip="愛心" onclick="triggerEffect('heart')" style="background:#e91e63">💛</button>
-<button class="fab-item" data-tooltip="讚啦" onclick="triggerEffect('thumb')" style="background:#2ecc71">👍</button>
-<button class="fab-item" data-tooltip="掌聲" onclick="triggerEffect('clap')" style="background:#3498db">👏</button>
-</div><button class="fab-main" onclick="toggleEffectsMenu()">🪄</button>
+    <div class="fab-options">
+        <button class="fab-item" data-tooltip="狂賀" onclick="triggerEffect('firework')" style="background:#e67e22">🎊</button>
+        <button class="fab-item" data-tooltip="愛心" onclick="triggerEffect('heart')" style="background:#e91e63">💛</button>
+        <button class="fab-item" data-tooltip="讚啦" onclick="triggerEffect('thumb')" style="background:#2ecc71">👍</button>
+        <button class="fab-item" data-tooltip="掌聲" onclick="triggerEffect('clap')" style="background:#3498db">👏</button>
+    </div>
+    <button class="fab-main" onclick="toggleEffectsMenu()">🪄</button>
 </div>
+
 <div id="bgMenu" class="bg-menu"></div>
+
 <div class="toolbar-wrapper" id="toolbarWrapper">
-<div class="toggle-bar-btn" onclick="toggleToolbar()" title="縮小/展開工具列"><i class="fa-solid fa-chevron-down" id="toggleIcon"></i></div>
-<div class="toolbar-container">
-<div class="tool-btn" id="bgBtn"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><span class="tool-label">背景</span></div>
-<div class="tool-divider"></div>
-<div class="tool-btn" onclick="createWidget('text')"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><span class="tool-label">公告</span></div>
-<div class="tool-btn" onclick="createWidget('media')"><div class="tool-icon"><i class="fa-solid fa-link"></i></div><span class="tool-label">連結</span></div>
-<div class="tool-btn" onclick="createWidget('traffic')"><div class="tool-icon"><i class="fa-solid fa-traffic-light"></i></div><span class="tool-label">紅綠燈</span></div>
-<div class="tool-btn" onclick="createWidget('timer')"><div class="tool-icon"><i class="fa-solid fa-hourglass-half"></i></div><span class="tool-label">倒數</span></div>
-<div class="tool-btn" onclick="createWidget('stopwatch')"><div class="tool-icon"><i class="fa-solid fa-stopwatch"></i></div><span class="tool-label">碼錶</span></div>
-<div class="tool-btn" onclick="createWidget('scoreboard')"><div class="tool-icon"><i class="fa-solid fa-clipboard-list"></i></div><span class="tool-label">記分</span></div>
-<div class="tool-btn" onclick="createWidget('draw')"><div class="tool-icon"><i class="fa-solid fa-pen-nib"></i></div><span class="tool-label">畫板</span></div>
-<div class="tool-btn" onclick="createWidget('randomizer')"><div class="tool-icon"><i class="fa-solid fa-shuffle"></i></div><span class="tool-label">抽籤</span></div>
-<div class="tool-btn" onclick="createWidget('dice')"><div class="tool-icon"><i class="fa-solid fa-dice"></i></div><span class="tool-label">骰子</span></div>
-<div class="tool-btn" onclick="createWidget('clock')"><div class="tool-icon"><i class="fa-regular fa-clock"></i></div><span class="tool-label">時鐘</span></div>
-<div class="tool-btn" onclick="createWidget('calendar')"><div class="tool-icon"><i class="fa-solid fa-calendar-days"></i></div><span class="tool-label">日曆</span></div>
-<div class="tool-divider"></div>
-<div class="tool-btn" onclick="saveState()"><div class="tool-icon"><i class="fa-solid fa-floppy-disk"></i></div><span class="tool-label">存檔</span></div>
-<div class="tool-btn" onclick="document.getElementById('importFile').click()"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><span class="tool-label">讀檔</span></div>
-<div class="tool-btn danger" onclick="tryClearAll(this)"><div class="tool-icon" style="color:#ff5f57"><i class="fa-solid fa-trash-can"></i></div><span class="tool-label">清除</span></div>
-</div></div>
+    <div class="toggle-bar-btn" onclick="toggleToolbar()" title="縮小/展開工具列">
+        <i class="fa-solid fa-chevron-down" id="toggleIcon"></i>
+    </div>
+    <div class="toolbar-container">
+        <div class="tool-btn" id="bgBtn">
+            <div class="tool-icon"><i class="fa-solid fa-image"></i></div>
+            <span class="tool-label">背景</span>
+        </div>
+        <div class="tool-divider"></div>
+        <div class="tool-btn" onclick="createWidget('text')">
+            <div class="tool-icon"><i class="fa-solid fa-font"></i></div>
+            <span class="tool-label">公告</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('media')">
+            <div class="tool-icon"><i class="fa-solid fa-link"></i></div>
+            <span class="tool-label">連結</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('traffic')">
+            <div class="tool-icon"><i class="fa-solid fa-traffic-light"></i></div>
+            <span class="tool-label">紅綠燈</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('timer')">
+            <div class="tool-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+            <span class="tool-label">倒數</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('stopwatch')">
+            <div class="tool-icon"><i class="fa-solid fa-stopwatch"></i></div>
+            <span class="tool-label">碼錶</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('scoreboard')">
+            <div class="tool-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+            <span class="tool-label">記分</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('draw')">
+            <div class="tool-icon"><i class="fa-solid fa-pen-nib"></i></div>
+            <span class="tool-label">畫板</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('randomizer')">
+            <div class="tool-icon"><i class="fa-solid fa-shuffle"></i></div>
+            <span class="tool-label">抽籤</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('dice')">
+            <div class="tool-icon"><i class="fa-solid fa-dice"></i></div>
+            <span class="tool-label">骰子</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('clock')">
+            <div class="tool-icon"><i class="fa-regular fa-clock"></i></div>
+            <span class="tool-label">時鐘</span>
+        </div>
+        <div class="tool-btn" onclick="createWidget('calendar')">
+            <div class="tool-icon"><i class="fa-solid fa-calendar-days"></i></div>
+            <span class="tool-label">日曆</span>
+        </div>
+        <div class="tool-divider"></div>
+        <div class="tool-btn" onclick="saveState()">
+            <div class="tool-icon"><i class="fa-solid fa-floppy-disk"></i></div>
+            <span class="tool-label">存檔</span>
+        </div>
+        <div class="tool-btn" onclick="document.getElementById('importFile').click()">
+            <div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div>
+            <span class="tool-label">讀檔</span>
+        </div>
+        <div class="tool-btn danger" onclick="tryClearAll(this)">
+            <div class="tool-icon" style="color:#ff5f57"><i class="fa-solid fa-trash-can"></i></div>
+            <span class="tool-label">清除</span>
+        </div>
+    </div>
+</div>
 <div class="copyright">Copyright © Liyuchiutiger Gongminshen</div>
+
 <script>
-const bgMax=10;
-const workspace=document.getElementById('workspace'),audioCtx=new(window.AudioContext||window.webkitAudioContext)(),titles={'media':'連結','randomizer':'隨機抽籤','text':'文字公告','traffic':'紅綠燈','timer':'倒數計時','stopwatch':'碼錶','clock':'時鐘','calendar':'日曆','scoreboard':'記分板','dice':'擲骰子','draw':'畫板'};
-let lastSelection=null,clearTimer=null;
-function toggleToolbar(){const w=document.getElementById('toolbarWrapper');w.classList.toggle('minimized');document.getElementById('toggleIcon').className=w.classList.contains('minimized')?'fa-solid fa-chevron-up':'fa-solid fa-chevron-down'}
-function tryClearAll(btn){if(btn.classList.contains('confirm-state')){workspace.innerHTML='';btn.classList.remove('confirm-state');btn.querySelector('.tool-label').innerText='清除';clearTimeout(clearTimer)}else{btn.classList.add('confirm-state');btn.querySelector('.tool-label').innerText='確定?';clearTimer=setTimeout(()=>{btn.classList.remove('confirm-state');btn.querySelector('.tool-label').innerText='清除'},3000)}}
-function playSound(t){if(audioCtx.state==='suspended')audioCtx.resume();const g=audioCtx.createGain(),now=audioCtx.currentTime;g.connect(audioCtx.destination);if(t==='clap'){const b=audioCtx.createBuffer(1,audioCtx.sampleRate*2,audioCtx.sampleRate),d=b.getChannelData(0);for(let i=0;i<b.length;i++)d[i]=Math.random()*2-1;const n=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter();n.buffer=b;f.type='lowpass';f.frequency.value=800;n.connect(f);f.connect(g);g.gain.setValueAtTime(.5,now);g.gain.exponentialRampToValueAtTime(.01,now+1.5);n.start(now)}else if(t==='tada'){[523,659,783,1046].forEach((f,i)=>{const o=audioCtx.createOscillator(),ig=audioCtx.createGain();o.connect(ig);ig.connect(audioCtx.destination);o.frequency.value=f;ig.gain.setValueAtTime(.1,now+i*.1);ig.gain.exponentialRampToValueAtTime(.01,now+i*.1+.5);o.start(now+i*.1);o.stop(now+i*.1+.5)})}else{const o=audioCtx.createOscillator();o.connect(g);o.start(now);if(t==='click'){o.type='sine';o.frequency.setValueAtTime(800,now);o.frequency.exponentialRampToValueAtTime(100,now+.1);g.gain.setValueAtTime(.2,now);g.gain.exponentialRampToValueAtTime(.01,now+.1);o.stop(now+.1)}else if(t==='firework'){o.type='sawtooth';o.frequency.setValueAtTime(100,now);o.frequency.exponentialRampToValueAtTime(20,now+.5);g.gain.setValueAtTime(.3,now);g.gain.exponentialRampToValueAtTime(.01,now+.5);o.stop(now+.5)}else if(t==='pop'){o.type='triangle';o.frequency.linearRampToValueAtTime(600,now+.1);g.gain.setValueAtTime(.2,now);g.gain.linearRampToValueAtTime(.01,now+.2);o.stop(now+.2)}}}
-const bgBtn=document.getElementById('bgBtn'),bgMenu=document.getElementById('bgMenu');
-function initBgMenu(){let h='';for(let i=1;i<=bgMax;i++)h+=`<div class="bg-option" onclick="setBg('image',${i})">🖼️ 背景 ${i}</div>`;h+=`<hr style="margin:4px 0;border:0;border-top:1px solid #eee"><div class="bg-option" onclick="setBg('color','#eef2f5')">🎨 簡約灰白</div><div class="bg-option" onclick="setBg('color','#2c3e50')">🌙 深色模式</div><div class="bg-option" onclick="setBg('color','#a8e6cf')">🍃 清新綠意</div>`;bgMenu.innerHTML=h}initBgMenu();
-bgBtn.addEventListener('click',()=>{setBg('image',(window.bgIdx=(window.bgIdx||1)%bgMax+1))});
-bgBtn.addEventListener('contextmenu',(e)=>{e.preventDefault();bgMenu.style.left=bgBtn.getBoundingClientRect().left+'px';bgMenu.style.bottom=(window.innerHeight-bgBtn.getBoundingClientRect().top+10)+'px';bgMenu.classList.add('show')});
-document.addEventListener('click',(e)=>{if(!bgBtn.contains(e.target)&&!bgMenu.contains(e.target))bgMenu.classList.remove('show')});
-function setBg(t,v){window.bgState={type:t,val:v};if(t==='image'){document.body.style.backgroundImage=`url('background/background${String(v).padStart(3,'0')}.png')`;window.bgIdx=v}else{document.body.style.backgroundImage='none';document.body.style.backgroundColor=v}bgMenu.classList.remove('show')}
-function createWidget(type,data=null){
-    const w=document.createElement('div');w.className='widget';w.dataset.type=type;
-    if(data){w.style.left=data.left;w.style.top=data.top;w.style.width=data.width;w.style.height=data.height;w.style.zIndex=data.zIndex||10;if(data.opacity)w.style.backgroundColor=`rgba(255,255,255,${data.opacity})`}
-    else{w.style.left=Math.max(50,Math.random()*(window.innerWidth-400))+'px';w.style.top=Math.max(50,Math.random()*(window.innerHeight-500))+'px'}
-    const extra=type==='traffic'?'<div class="ctrl-btn" onclick="toggleTrafficText(this)" title="隱藏文字"><i class="fa-solid fa-eye"></i></div>':'';
-    w.innerHTML=`<div class="widget-header"><span class="widget-title">${titles[type]||type}</span><div class="header-controls">${extra}<div class="ctrl-btn" onclick="toggleOpacitySlider(this)" title="調整透明度"><i class="fa-solid fa-droplet"></i><div class="opacity-slider-container"><input type="range" min="0.2" max="1" step="0.1" value="${data?.opacity||0.95}" class="opacity-slider" oninput="changeWidgetOpacity(this)"></div></div><div class="close-btn ctrl-btn" onclick="this.closest('.widget').remove()"><i class="fa-solid fa-xmark"></i></div></div></div><div class="widget-content"></div>`;
-    initWidgetContent(type,w.querySelector('.widget-content'),w,data);workspace.appendChild(w);makeDraggable(w);
-}
-window.toggleOpacitySlider=b=>{const d=b.querySelector('.opacity-slider-container');document.querySelectorAll('.opacity-slider-container.show').forEach(e=>{if(e!==d)e.classList.remove('show')});d.classList.toggle('show')};
-document.addEventListener('click',e=>{if(!e.target.closest('.ctrl-btn'))document.querySelectorAll('.opacity-slider-container.show').forEach(el=>el.classList.remove('show'))});
-window.changeWidgetOpacity=i=>{const w=i.closest('.widget');w.style.backgroundColor=`rgba(255,255,255,${i.value})`;w.dataset.opacity=i.value};
-function saveSelection(){const s=window.getSelection();if(s.rangeCount>0){const e=s.anchorNode.nodeType===3?s.anchorNode.parentElement.closest('.text-editor'):s.anchorNode.closest('.text-editor');if(e)lastSelection=s.getRangeAt(0)}}
-function restoreAndFormat(c,v){if(lastSelection){const s=window.getSelection();s.removeAllRanges();s.addRange(lastSelection)}document.execCommand(c,!1,v)}
-function initWidgetContent(type,c,w,data){
-    if(type==='text'){
-        c.innerHTML=`<div class="text-toolbar"><select class="text-select" onchange="formatText('fontName',this.value)" style="width:80px"><option value="Microsoft JhengHei">正黑體</option><option value="DFKai-SB">標楷體</option><option value="sans-serif">黑體</option><option value="Comic Sans MS">卡漫</option></select><select class="text-select" onchange="applyFontSize(this.value)" style="width:60px"><option value="3">字號</option>${[12,14,16,18,20,24,28,32,36,48,60,72].map(s=>`<option value="${s}">${s}px</option>`).join('')}</select><div class="color-btn-wrapper" title="文字顏色" onmousedown="saveSelection()"><i class="fa-solid fa-palette"></i><input type="color" class="color-input-overlay" oninput="restoreAndFormat('foreColor',this.value)"></div><button class="text-btn" onclick="formatText('bold')"><i class="fa-solid fa-bold"></i></button><button class="text-btn" onclick="formatText('italic')"><i class="fa-solid fa-italic"></i></button><button class="text-btn" onclick="formatText('underline')"><i class="fa-solid fa-underline"></i></button><button class="text-btn" onclick="toggleLinkInput(this)" title="連結" onmousedown="saveSelection()"><i class="fa-solid fa-link"></i></button><div class="link-input-area"><input type="text" class="link-text-input" placeholder="輸入網址..." onkeydown="if(event.key==='Enter')applyLink(this)"><button class="form-btn save" onclick="applyLink(this)">OK</button></div><div class="tool-divider"></div><button class="text-btn" onclick="formatText('insertOrderedList')"><i class="fa-solid fa-list-ol"></i></button><button class="text-btn" onclick="formatText('insertUnorderedList')"><i class="fa-solid fa-list-ul"></i></button><button class="text-btn" onclick="formatText('removeFormat')"><i class="fa-solid fa-eraser"></i></button><div class="tool-divider"></div><button class="text-btn" onclick="toggleMarquee(this)" title="跑馬燈/鎖定"><i class="fa-solid fa-rocket"></i></button></div><div class="text-editor" contenteditable="true" placeholder="點擊輸入..."></div>`;
-        const ed=c.querySelector('.text-editor');
-        if(data?.html)ed.innerHTML=data.html;else{w.style.width="400px";w.style.height="300px"}
-        ed.addEventListener('click',e=>{if(e.target.tagName==='A'&&(ed.classList.contains('marquee-mode')||e.ctrlKey||e.metaKey))window.open(e.target.href,'_blank')});
-    }else if(type==='media'){
-        c.innerHTML=`<div class="media-form"><input type="text" class="media-input name" placeholder="名稱"><input type="text" class="media-input url" placeholder="網址"><div class="media-form-btns"><button class="form-btn cancel" onclick="hideMediaForm(this)">取消</button><button class="form-btn save" onclick="saveMediaItem(this)">確定</button></div></div><div class="media-list"></div><button class="add-light-btn" onclick="showMediaForm(this)">+ 新增</button>`;
-        const lst=c.querySelector('.media-list');
-        lst.addEventListener('dragover',e=>{e.preventDefault();const ae=getMediaDragAfterElement(lst,e.clientY),d=document.querySelector('.media-item-row.dragging');ae?lst.insertBefore(d,ae):lst.appendChild(d)});
-        if(data?.items)data.items.forEach(i=>renderMediaItem(lst,i.name,i.url));if(!data)w.style.width="300px";
-    }else if(type==='stopwatch'){
-        c.innerHTML=`<div class="stopwatch-display">00:00.00</div><div class="timer-controls"><button class="timer-btn" onclick="swLogic(this)"><i class="fa-solid fa-play"></i> 開始</button><button class="timer-btn" onclick="swLap(this)"><i class="fa-solid fa-flag"></i> 計次</button><button class="timer-btn reset" onclick="swReset(this)"><i class="fa-solid fa-rotate-right"></i></button></div><div class="lap-list"></div>`;
-        if(!data)w.style.width="320px";else if(data.laps)data.laps.forEach(l=>c.querySelector('.lap-list').insertAdjacentHTML('afterbegin',`<div class="lap-item"><span class="lap-idx">${l.idx}</span><span class="lap-time">${l.time}</span><input class="lap-note" placeholder="註解..." value="${l.note||''}"></div>`));
-    }else if(type==='traffic'){
-        c.innerHTML=`<div class="traffic-container"></div><button class="add-light-btn" onclick="addTrafficRow(this)">+ 新增燈號</button>`;
-        if(data?.rows)data.rows.forEach(r=>addTrafficRow(c.querySelector('.add-light-btn'),r.color,r.text,r.active));else{['#ff5f57','#ffbd2e','#27c93f'].forEach((cl,i)=>addTrafficRow(c.querySelector('.add-light-btn'),cl,['禁止/安靜','注意/輕聲','開始/討論'][i]))}if(!data)w.style.width="280px";
-    }else if(type==='scoreboard'){
-        c.innerHTML=`<div class="score-container"></div><button class="add-light-btn" onclick="addTeam(this)">+ 新增組別</button>`;
-        const sc=c.querySelector('.score-container');
-        if(data?.teams)data.teams.forEach(t=>sc.insertAdjacentHTML('beforeend',createTeamHTML(t.name,t.score)));else{sc.innerHTML=createTeamHTML('第一組')+createTeamHTML('第二組')}if(!data)w.style.width="400px";
-    }else if(type==='draw'){
-        c.innerHTML=`<div class="draw-wrapper"><div class="draw-tools"><div class="color-pick active" style="background:black" onclick="setPen(this,'black')"></div><div class="color-pick" style="background:#ff5f57" onclick="setPen(this,'#ff5f57')"></div><div class="color-pick" style="background:#4a90e2" onclick="setPen(this,'#4a90e2')"></div><div class="tool-separator"></div><div class="draw-btn" onclick="setPen(this,'eraser')"><i class="fa-solid fa-eraser"></i></div><div class="draw-btn" onclick="clearCanvas(this)"><i class="fa-solid fa-trash"></i></div><div class="tool-separator"></div><div class="draw-btn" id="moveModeBtn" onclick="toggleMoveMode(this)"><i class="fa-solid fa-up-down-left-right"></i></div><div class="tool-separator"></div><div class="draw-btn" onclick="setCanvasBg(this,'bg-white')"><i class="fa-regular fa-square"></i></div><div class="draw-btn" onclick="setCanvasBg(this,'bg-grid')"><i class="fa-solid fa-border-all"></i></div><div class="draw-btn" onclick="setCanvasBg(this,'bg-lines')"><i class="fa-solid fa-bars"></i></div></div><div class="canvas-container bg-white" tabindex="0"><div class="img-layer"></div><canvas></canvas></div></div>`;
-        if(!data){w.style.width="500px";w.style.height="400px"}setTimeout(()=>initDraw(c,data?.canvasImg),100);
-    }else if(type==='clock'){
-        c.innerHTML=`<div style="font-size:3.5rem;font-weight:800;color:var(--text-main);line-height:1;font-family:monospace" class="clock-display">00:00:00</div><div style="font-size:1.2rem;color:#7f8c8d;margin-top:5px" class="date-display">...</div>`;startClock(c);if(!data)w.style.width="340px";
-    }else if(type==='dice'){
-        c.innerHTML=`<div style="font-size:6rem;cursor:pointer;color:var(--primary-color)" onclick="rollDice(this)"><i class="fa-solid fa-dice-one"></i></div>`;
-    }else if(type==='timer'){
-        c.innerHTML=`<div class="timer-wrapper"><div class="timer-display"><input type="number" value="05" class="timer-input min" onchange="padTime(this)"><span>:</span><input type="number" value="00" class="timer-input sec" onchange="padTime(this)"></div><div class="timer-controls"><button class="timer-btn" onclick="timerLogic(this)"><i class="fa-solid fa-play"></i> 開始</button><button class="timer-btn reset" onclick="timerReset(this)"><i class="fa-solid fa-rotate-right"></i></button></div></div>`;if(!data)w.style.width="320px";
-    }else if(type==='randomizer'){
-        c.innerHTML=`<div class="randomizer-area"><div class="random-result"><i class="fa-solid fa-question" style="color:#ccc"></i></div><textarea class="names-input" placeholder="輸入名單，每行一個..." rows="5">${data?data.names:''}</textarea><button class="timer-btn" style="width:100%;justify-content:center;margin-top:10px" onclick="runRandomizer(this)">開始抽籤</button></div>`;if(!data)w.style.width="300px";
-    }else if(type==='calendar'){
-        c.innerHTML=`<div class="cal-container" style="width:100%"></div>`;initCalendar(c.querySelector('.cal-container'));if(!data)w.style.width="300px";
+    const workspace = document.getElementById('workspace');
+    const bgBtn = document.getElementById('bgBtn');
+    const bgMenu = document.getElementById('bgMenu');
+    const mascot = document.getElementById('mascot');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    const titles = {
+        'media': '連結', 'randomizer': '隨機抽籤', 'text': '文字公告', 
+        'traffic': '紅綠燈', 'timer': '倒數計時', 'stopwatch': '碼錶', 
+        'clock': '時鐘', 'calendar': '日曆', 'scoreboard': '記分板', 
+        'dice': '擲骰子', 'draw': '畫板'
+    };
+    const BG_MAX = 10;
+    
+    let lastSelection = null;
+    let clearTimer = null;
+    window.bgIdx = 1;
+
+    function initBgMenu() {
+        let h = '';
+        for (let i = 1; i <= BG_MAX; i++) h += `<div class="bg-option" onclick="setBg('image',${i})">🖼️ 背景 ${i}</div>`;
+        h += `<hr style="margin:4px 0;border:0;border-top:1px solid #eee">
+              <div class="bg-option" onclick="setBg('color','#eef2f5')">🎨 簡約灰白</div>
+              <div class="bg-option" onclick="setBg('color','#2c3e50')">🌙 深色模式</div>
+              <div class="bg-option" onclick="setBg('color','#a8e6cf')">🍃 清新綠意</div>`;
+        bgMenu.innerHTML = h;
     }
-}
-function toggleLinkInput(btn){const a=btn.parentElement.querySelector('.link-input-area');a.classList.toggle('show');if(a.classList.contains('show'))a.querySelector('input').focus()}
-function applyLink(el){const p=el.parentElement,u=p.querySelector('input').value;if(u){if(lastSelection){const s=window.getSelection();s.removeAllRanges();s.addRange(lastSelection)}formatText("createLink",u);p.classList.remove('show');p.querySelector('input').value=''}}
-function showMediaForm(btn,name='',url=''){const f=btn.parentElement.querySelector('.media-form');f.classList.add('show');f.querySelector('.name').value=name;f.querySelector('.url').value=url;window.currentEditingMedia=name?btn.closest('.media-item-row'):null}
-function hideMediaForm(btn){btn.closest('.media-form').classList.remove('show');window.currentEditingMedia=null}
-function saveMediaItem(btn){const f=btn.closest('.media-form'),n=f.querySelector('.name').value,u=f.querySelector('.url').value,l=f.parentElement.querySelector('.media-list');if(!n||!u)return;if(window.currentEditingMedia)l.replaceChild(createMediaItemDOM(n,u),window.currentEditingMedia);else renderMediaItem(l,n,u);hideMediaForm(btn)}
-function renderMediaItem(c,n,u){c.appendChild(createMediaItemDOM(n,u))}
-function createMediaItemDOM(n,u){const i=document.createElement('div');i.className='media-item-row';i.draggable=!0;i.dataset.name=n;i.dataset.url=u;i.innerHTML=`<div class="media-drag-handle"><i class="fa-solid fa-grip-vertical"></i></div><a href="${u}" target="_blank" class="clean-link-btn"><i class="fa-solid fa-link"></i> ${n}</a><div class="media-actions-inline"><div class="action-icon edit" onclick="editMediaItem(this)"><i class="fa-solid fa-pen"></i></div><div class="action-icon del" onclick="this.closest('.media-item-row').remove()"><i class="fa-solid fa-trash-can"></i></div></div>`;i.addEventListener('dragstart',()=>i.classList.add('dragging'));i.addEventListener('dragend',()=>i.classList.remove('dragging'));return i}
-function getMediaDragAfterElement(c,y){return [...c.querySelectorAll('.media-item-row:not(.dragging)')].reduce((cl,ch)=>{const b=ch.getBoundingClientRect(),o=y-b.top-b.height/2;return(o<0&&o>cl.offset)?{offset:o,element:ch}:cl},{offset:Number.NEGATIVE_INFINITY}).element}
-function editMediaItem(btn){const i=btn.closest('.media-item-row');showMediaForm(i.closest('.widget-content').querySelector('.add-light-btn'),i.dataset.name,i.dataset.url);window.currentEditingMedia=i}
+    initBgMenu();
 
-// -----------------------------------------------------
-// ★ 修正後的拖曳功能 (支援手機觸控) ★
-// -----------------------------------------------------
-function makeDraggable(el){
-    let isDragging = false;
-    let startX, startY, initialLeft, initialTop;
-
-    function dragStart(e) {
-        // 如果是觸控，取得第一個觸控點
-        const evt = e.touches ? e.touches[0] : e;
-        
-        // 1. 檢查是否點擊到輸入框、按鈕等互動元件 (不觸發拖曳)
-        if(e.target.matches('input, textarea, button, select, i, canvas, .light, .pasted-img-wrapper') || 
-           e.target.closest('.opacity-slider-container, .media-form, .media-item-row, .link-input-area') || 
-           e.target.isContentEditable) {
-            return;
-        }
-
-        // 2. 檢查是否點擊到右下角 (保留給縮放使用)
-        // 取得元素的邊界
-        const rect = el.getBoundingClientRect();
-        // 如果點擊位置距離右邊界和下邊界都在 20px 以內，視為縮放，不執行拖曳
-        if (evt.clientX > rect.right - 20 && evt.clientY > rect.bottom - 20) {
-            return;
-        }
-
-        // 開始拖曳邏輯
-        isDragging = true;
-        startX = evt.clientX;
-        startY = evt.clientY;
-        initialLeft = el.offsetLeft;
-        initialTop = el.offsetTop;
-
-        // 設定層級 z-index
-        if(el.id !== 'mascot'){
-            document.querySelectorAll('.widget').forEach(w => w.style.zIndex = 10);
-            el.style.zIndex = 100;
-        } else if(!el.style.top){
-            // 吉祥物第一次拖曳時的初始化
-            el.style.bottom = 'auto';
-            el.style.left = rect.left + 'px';
-            el.style.top = rect.top + 'px';
-        }
-
-        // 綁定移動和結束事件
-        if (e.type === 'touchstart') {
-            document.addEventListener('touchmove', dragMove, { passive: false });
-            document.addEventListener('touchend', dragEnd, { passive: false });
-        } else {
-            document.addEventListener('mousemove', dragMove);
-            document.addEventListener('mouseup', dragEnd);
-        }
-    }
-
-    function dragMove(e) {
-        if (!isDragging) return;
-        
-        // ★ 關鍵：阻止預設捲動行為，讓拖曳順暢 ★
-        if (e.cancelable) e.preventDefault();
-
-        const evt = e.touches ? e.touches[0] : e;
-        const dx = evt.clientX - startX;
-        const dy = evt.clientY - startY;
-
-        el.style.left = (initialLeft + dx) + "px";
-        el.style.top = (initialTop + dy) + "px";
-
-        if(el.id === 'mascot') el.dataset.moved = 'true';
-    }
-
-    function dragEnd() {
-        isDragging = false;
-        // 移除監聽
-        document.removeEventListener('mousemove', dragMove);
-        document.removeEventListener('mouseup', dragEnd);
-        document.removeEventListener('touchmove', dragMove);
-        document.removeEventListener('touchend', dragEnd);
-    }
-
-    // 綁定開始事件 (注意 passive: false 對於 touchstart 很重要)
-    el.addEventListener('mousedown', dragStart);
-    el.addEventListener('touchstart', dragStart, { passive: false });
-}
-
-makeDraggable(document.getElementById('mascot'));
-function formatText(c,v=null){document.execCommand(c,!1,v)}
-function applyFontSize(s){const sel=window.getSelection();if(sel.rangeCount){const sp=document.createElement("span");sp.style.fontSize=s+"px";sp.innerHTML=sel.toString();sel.getRangeAt(0).deleteContents();sel.getRangeAt(0).insertNode(sp)}}
-function toggleMarquee(btn){const ed=btn.closest('.widget-content').querySelector('.text-editor'),isM=ed.classList.toggle('marquee-mode');if(isM){ed.contentEditable="false";btn.classList.add('active');ed.innerHTML=`<div class="marquee-content">${ed.innerHTML}</div>`}else{ed.contentEditable="true";btn.classList.remove('active');if(ed.querySelector('.marquee-content'))ed.innerHTML=ed.querySelector('.marquee-content').innerHTML}}
-function saveState(){
-    const s={bg:window.bgState||{type:'image',val:1},widgets:[],mascot:{left:mascot.style.left,top:mascot.style.top}};
-    document.querySelectorAll('.widget').forEach(w=>{
-        const d={type:w.dataset.type,left:w.style.left,top:w.style.top,width:w.style.width,height:w.style.height,zIndex:w.style.zIndex,opacity:w.dataset.opacity||0.95},c=w.querySelector('.widget-content');
-        if(d.type==='text'){const e=c.querySelector('.text-editor');d.html=e.classList.contains('marquee-mode')?e.querySelector('.marquee-content').innerHTML:e.innerHTML}
-        else if(d.type==='media'){d.items=[];c.querySelectorAll('.media-item-row').forEach(i=>d.items.push({name:i.dataset.name,url:i.dataset.url}))}
-        else if(d.type==='stopwatch'){d.laps=[];c.querySelectorAll('.lap-item').forEach(l=>d.laps.push({idx:l.querySelector('.lap-idx').innerText,time:l.querySelector('.lap-time').innerText,note:l.querySelector('.lap-note').value}))}
-        else if(d.type==='traffic'){d.rows=[];c.querySelectorAll('.traffic-row').forEach(r=>d.rows.push({text:r.querySelector('.traffic-input').value,color:r.querySelector('.light').style.background,active:r.querySelector('.light').classList.contains('active')}))}
-        else if(d.type==='scoreboard'){d.teams=[];c.querySelectorAll('.score-team').forEach(t=>d.teams.push({name:t.querySelector('input').value,score:t.querySelector('.score-num').innerText}))}
-        else if(d.type==='randomizer')d.names=c.querySelector('textarea').value;
-        else if(d.type==='draw')d.canvasImg=c.querySelector('canvas').toDataURL();
-        s.widgets.push(d)
+    bgBtn.addEventListener('click', () => setBg('image', (window.bgIdx = (window.bgIdx || 1) % BG_MAX + 1)));
+    bgBtn.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const rect = bgBtn.getBoundingClientRect();
+        bgMenu.style.left = rect.left + 'px';
+        bgMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+        bgMenu.classList.add('show');
     });
-    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(s)],{type:"application/json"}));a.download=`LiyuChillGuy_Backup_${(new Date()).toISOString().slice(0,10)}.json`;a.click();
-}
-function loadState(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const s=JSON.parse(e.target.result);if(s.bg)setBg(s.bg.type,s.bg.val);workspace.innerHTML='';s.widgets.forEach(w=>createWidget(w.type,w));if(s.mascot?.left){mascot.style.left=s.mascot.left;mascot.style.top=s.mascot.top;mascot.style.bottom='auto'}}catch(err){}};r.readAsText(f);inp.value=''}
-function toggleEffectsMenu(){document.getElementById('effectsMenu').classList.toggle('open');document.querySelector('.fab-main').classList.toggle('active')}
-function triggerEffect(t){
-    const l=document.getElementById('effects-layer');
-    if(t==='firework'){playSound('firework');for(let i=0;i<30;i++){const p=document.createElement('div');p.className='particle';p.style.cssText=`left:${Math.random()*window.innerWidth}px;top:${Math.random()*window.innerHeight}px;width:10px;height:10px;background:hsl(${Math.random()*360},100%,50%);border-radius:50%`;p.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${(Math.random()-.5)*200}px, ${(Math.random()-.5)*200}px) scale(0)`,opacity:0}],{duration:1000,easing:'ease-out'}).onfinish=()=>p.remove();l.appendChild(p)}}
-    else if(t==='heart'||t==='thumb'){if(t==='thumb')playSound('pop');for(let i=0;i<15;i++){const e=document.createElement('div');e.className='float-emoji';e.innerText=t==='heart'?'🩷🧡💛💚💙🩵💜':'🙌🫶🤟🫰👍';e.style.left=(Math.random()*80+10)+'%';e.style.setProperty('--x-sway',(Math.random()*100-50)+'px');e.style.animationDelay=Math.random()+'s';l.appendChild(e);setTimeout(()=>e.remove(),4000)}}
-    else if(t==='clap'){playSound('clap');for(let i=0;i<50;i++){const c=document.createElement('div');c.className='particle';c.style.cssText=`left:${Math.random()*100}%;top:-10px;width:5px;height:15px;background:${['red','gold','blue','green'][Math.floor(Math.random()*4)]}`;c.animate([{transform:'translateY(0) rotate(0deg)',opacity:1},{transform:`translateY(${window.innerHeight}px) rotate(${Math.random()*720}deg)`,opacity:0}],{duration:2000+Math.random()*1000}).onfinish=()=>c.remove();l.appendChild(c)}}
-}
-function toggleTrafficText(btn){const c=btn.closest('.widget').querySelector('.traffic-container'),h=c.classList.toggle('traffic-hide-text');btn.innerHTML=h?'<i class="fa-solid fa-eye-slash"></i>':'<i class="fa-solid fa-eye"></i>'}
-function toggleLight(el){el.parentElement.parentElement.querySelectorAll('.light').forEach(l=>l.classList.remove('active'));el.classList.add('active');playSound('click')}
-function addTrafficRow(btn,color=null,text='',active=false){const c=btn.previousElementSibling,r=document.createElement('div');r.className='traffic-row';r.draggable=!0;r.innerHTML=`<div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div><div class="light ${active?'active':''}" style="background:${color||'#9b59b6'}" onclick="toggleLight(this)"></div><input type="text" class="traffic-input" value="${text}" placeholder="事項"><div class="traffic-del" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></div>`;r.addEventListener('dragstart',()=>r.classList.add('dragging'));r.addEventListener('dragend',()=>r.classList.remove('dragging'));c.addEventListener('dragover',e=>{e.preventDefault();const ae=getDragAfterElement(c,e.clientY),d=document.querySelector('.dragging');ae?c.insertBefore(d,ae):c.appendChild(d)});c.appendChild(r)}
-function getDragAfterElement(c,y){return [...c.querySelectorAll('.traffic-row:not(.dragging)')].reduce((cl,ch)=>{const b=ch.getBoundingClientRect(),o=y-b.top-b.height/2;return(o<0&&o>cl.offset)?{offset:o,element:ch}:cl},{offset:Number.NEGATIVE_INFINITY}).element}
-function initDraw(c,img){const cn=c.querySelector('.canvas-container'),cv=cn.querySelector('canvas'),il=cn.querySelector('.img-layer'),ctx=cv.getContext('2d');let move=false,paint=false,col='black',eras=false;
-    new ResizeObserver(()=>{const t=document.createElement('canvas');t.width=cv.width;t.height=cv.height;t.getContext('2d').drawImage(cv,0,0);cv.width=cn.clientWidth;cv.height=cn.clientHeight;ctx.drawImage(t,0,0);if(img&&!cv.r){const i=new Image();i.onload=()=>ctx.drawImage(i,0,0);i.src=img;cv.r=1}}).observe(cn);
-    window.setPen=(e,color)=>{e.parentElement.querySelectorAll('.color-pick,.draw-btn').forEach(x=>x.classList.remove('active'));e.classList.add('active');move=false;cn.classList.remove('mode-move');c.querySelector('#moveModeBtn').classList.remove('active');eras=(color==='eraser');if(!eras)col=color};
-    window.clearCanvas=()=>{ctx.clearRect(0,0,cv.width,cv.height);il.innerHTML='';playSound('click')};
-    window.setCanvasBg=(b,cls)=>{cn.classList.remove('bg-white','bg-grid','bg-lines');cn.classList.add(cls)};
-    window.toggleMoveMode=(b)=>{move=!move;b.classList.toggle('active',move);cn.classList.toggle('mode-move',move);if(move)c.querySelectorAll('.color-pick,.draw-btn[onclick*="setPen"]').forEach(x=>x.classList.remove('active'))};
-    const gp=e=>{const r=cv.getBoundingClientRect();return{x:(e.touches?e.touches[0].clientX:e.clientX)-r.left,y:(e.touches?e.touches[0].clientY:e.clientY)-r.top}},dr=e=>{if(!paint)return;const p=gp(e);ctx.lineWidth=eras?25:4;ctx.lineCap='round';ctx.strokeStyle=eras?'rgba(0,0,0,1)':col;ctx.globalCompositeOperation=eras?'destination-out':'source-over';ctx.lineTo(p.x,p.y);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y)};
-    cv.addEventListener('mousedown',e=>{if(move||e.target!==cv)return;paint=true;dr(e)});cv.addEventListener('mousemove',dr);window.addEventListener('mouseup',()=>{paint=false;ctx.beginPath()});cv.addEventListener('touchstart',e=>{if(move||e.target!==cv)return;paint=true;dr(e)},{passive:false});cv.addEventListener('touchmove',dr,{passive:false});
-    cn.addEventListener('paste',e=>{for(let i of(e.clipboardData||e.originalEvent.clipboardData).items)if(i.type.indexOf('image')===0){const r=new FileReader();r.onload=evt=>{const d=document.createElement('div');d.className='pasted-img-wrapper';d.style.cssText='left:10px;top:10px;width:150px';d.innerHTML=`<img src="${evt.target.result}"><div class="resize-handle"></div>`;il.appendChild(d);dragImg(d);if(!move)window.toggleMoveMode(c.querySelector('#moveModeBtn'))};r.readAsDataURL(i.getAsFile())}});
-    function dragImg(el){let sx,sy,sw,sh,sl,st;el.onmousedown=e=>{if(!move)return;e.stopPropagation();il.querySelectorAll('.pasted-img-wrapper').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');sx=e.clientX;sy=e.clientY;if(e.target.classList.contains('resize-handle')){sw=parseInt(getComputedStyle(el).width);sh=parseInt(getComputedStyle(el).height);document.documentElement.addEventListener('mousemove',rs);document.documentElement.addEventListener('mouseup',stop)}else{sl=el.offsetLeft;st=el.offsetTop;document.documentElement.addEventListener('mousemove',mv);document.documentElement.addEventListener('mouseup',stop)}};
-    const mv=e=>{el.style.left=(sl+e.clientX-sx)+'px';el.style.top=(st+e.clientY-sy)+'px'},rs=e=>{el.style.width=(sw+e.clientX-sx)+'px';el.style.height=(sh+e.clientY-sy)+'px'},stop=()=>{document.documentElement.removeEventListener('mousemove',mv);document.documentElement.removeEventListener('mousemove',rs);document.documentElement.removeEventListener('mouseup',stop)}}
-}
-function startClock(c){const t=c.querySelector('.clock-display'),d=c.querySelector('.date-display');setInterval(()=>{const n=new Date();t.innerText=n.toLocaleTimeString('zh-TW',{hour12:false});d.innerText=n.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'long'})},1000)}
-function rollDice(e){let c=0,t=setInterval(()=>{e.innerHTML=`<i class="fa-solid fa-dice-${['one','two','three','four','five','six'][Math.floor(Math.random()*6)]}"></i>`;if(++c>10){clearInterval(t);playSound('pop')}},50)}
-function padTime(i){i.value=Math.max(0,parseInt(i.value)||0).toString().padStart(2,'0')}
-function timerLogic(b){const w=b.closest('.timer-wrapper'),[m,s]=w.querySelectorAll('input');if(w.id){clearInterval(w.id);w.id=null;b.innerHTML='<i class="fa-solid fa-play"></i> 繼續'}else{let t=parseInt(m.value)*60+parseInt(s.value);if(t<=0)return;m.disabled=s.disabled=!0;b.innerHTML='<i class="fa-solid fa-pause"></i> 暫停';w.id=setInterval(()=>{if(t<=0){clearInterval(w.id);w.id=null;m.disabled=s.disabled=!1;b.innerHTML='<i class="fa-solid fa-play"></i> 開始';w.querySelector('.timer-display').style.color='red';playSound('tada');return}t--;m.value=Math.floor(t/60).toString().padStart(2,'0');s.value=(t%60).toString().padStart(2,'0')},1000)}}
-function timerReset(b){const w=b.closest('.timer-wrapper');clearInterval(w.id);w.id=null;const[m,s]=w.querySelectorAll('input');m.disabled=s.disabled=!1;m.value="05";s.value="00";w.querySelector('.timer-display').style.color='#333';w.querySelector('.timer-btn').innerHTML='<i class="fa-solid fa-play"></i> 開始'}
-function swReset(b){const d=b.closest('.widget-content');clearInterval(d.sw?.i);d.sw={t:0,e:0,i:null};d.querySelector('.stopwatch-display').innerText="00:00.00";d.querySelector('.lap-list').innerHTML='';d.querySelector('.timer-btn').innerHTML='<i class="fa-solid fa-play"></i> 開始'}
-function swLogic(b){const d=b.closest('.widget-content'),dp=d.querySelector('.stopwatch-display');d.sw=d.sw||{t:0,e:0,i:null};if(d.sw.i){clearInterval(d.sw.i);d.sw.i=null;d.sw.e+=Date.now()-d.sw.t;b.innerHTML='<i class="fa-solid fa-play"></i> 繼續'}else{d.sw.t=Date.now();b.innerHTML='<i class="fa-solid fa-pause"></i> 暫停';d.sw.i=setInterval(()=>{const e=Date.now()-d.sw.t+d.sw.e,m=Math.floor(e/60000),s=Math.floor((e%60000)/1000),ms=Math.floor((e%1000)/10);dp.innerText=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}.${ms.toString().padStart(2,'0')}`},10)}}
-function swLap(b){const d=b.closest('.widget-content'),t=d.querySelector('.stopwatch-display').innerText,l=d.querySelector('.lap-list');l.insertAdjacentHTML('afterbegin',`<div class="lap-item"><span class="lap-idx">${l.children.length+1}</span><span class="lap-time">${t}</span><input class="lap-note" placeholder="註解..."></div>`)}
-function runRandomizer(b){const a=b.parentElement,n=a.querySelector('textarea').value.split('\n').filter(x=>x.trim());if(!n.length)return;let c=0;b.disabled=!0;const t=setInterval(()=>{a.querySelector('.random-result').innerText=n[Math.floor(Math.random()*n.length)];if(++c>20){clearInterval(t);playSound('tada');b.disabled=!1}},80)}
-function initCalendar(c){let d=new Date;const r=()=>{const y=d.getFullYear(),m=d.getMonth();let h=`<div style="display:flex;justify-content:space-between;margin-bottom:10px;font-weight:bold"><span onclick="calNav(-1)" style="cursor:pointer">&lt;</span> ${y}年${m+1}月 <span onclick="calNav(1)" style="cursor:pointer">&gt;</span></div><div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:5px">`;['日','一','二','三','四','五','六'].forEach(k=>h+=`<div style="color:#888;font-size:12px">${k}</div>`);for(let i=0;i<new Date(y,m,1).getDay();i++)h+=`<div></div>`;const t=new Date;for(let i=1;i<=new Date(y,m+1,0).getDate();i++)h+=`<div style="padding:5px;${(i===t.getDate()&&m===t.getMonth()&&y===t.getFullYear())?'background:var(--primary-color);color:#fff;border-radius:50%':''}">${i}</div>`;c.innerHTML=h+'</div>'};window.calNav=x=>{d.setMonth(d.getMonth()+x);r()};r()}
-function createTeamHTML(n,s='0'){return `<div class="score-team"><div class="score-del" style="position:absolute;top:5px;right:8px;cursor:pointer;color:#ccc" onclick="this.closest('.score-team').remove()">✕</div><input type="text" value="${n}" style="border:none;text-align:center;font-weight:bold;width:100%;background:0 0;margin-bottom:5px"><div class="score-num">${s}</div><div class="score-actions"><button class="score-ctrl-btn" onclick="modScore(this,-1)"><i class="fa-solid fa-minus"></i></button><button class="score-ctrl-btn" onclick="modScore(this,1)"><i class="fa-solid fa-plus"></i></button></div></div>`}
-function addTeam(b){const c=b.previousElementSibling,n=c.querySelectorAll('.score-team').length;c.insertAdjacentHTML('beforeend',createTeamHTML(n<10?`第${['一','二','三','四','五','六','七','八','九','十'][n]}組`:`第${n+1}組`))}
-function modScore(b,d){const n=b.parentElement.previousElementSibling;n.innerText=Math.max(0,parseInt(n.innerText)+d)}
-document.getElementById('mascot').addEventListener('click',()=>{if(mascot.dataset.moved!=='true')playSound('tada')});
+
+    document.addEventListener('click', (e) => {
+        if (!bgBtn.contains(e.target) && !bgMenu.contains(e.target)) bgMenu.classList.remove('show');
+        if (!e.target.closest('.ctrl-btn')) document.querySelectorAll('.opacity-slider-container.show').forEach(el => el.classList.remove('show'));
+    });
+
+    function setBg(type, val) {
+        window.bgState = { type, val };
+        if (type === 'image') {
+            document.body.style.backgroundImage = `url('background/background${String(val).padStart(3, '0')}.png')`;
+            window.bgIdx = val;
+        } else {
+            document.body.style.backgroundImage = 'none';
+            document.body.style.backgroundColor = val;
+        }
+        bgMenu.classList.remove('show');
+    }
+
+    function toggleToolbar() {
+        const w = document.getElementById('toolbarWrapper');
+        w.classList.toggle('minimized');
+        document.getElementById('toggleIcon').className = w.classList.contains('minimized') ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+    }
+
+    function tryClearAll(btn) {
+        if (btn.classList.contains('confirm-state')) {
+            workspace.innerHTML = '';
+            btn.classList.remove('confirm-state');
+            btn.querySelector('.tool-label').innerText = '清除';
+            clearTimeout(clearTimer);
+        } else {
+            btn.classList.add('confirm-state');
+            btn.querySelector('.tool-label').innerText = '確定?';
+            clearTimer = setTimeout(() => {
+                btn.classList.remove('confirm-state');
+                btn.querySelector('.tool-label').innerText = '清除';
+            }, 3000);
+        }
+    }
+
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const g = audioCtx.createGain(), now = audioCtx.currentTime;
+        g.connect(audioCtx.destination);
+        
+        if (type === 'clap') {
+            const b = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+            const d = b.getChannelData(0);
+            for (let i = 0; i < b.length; i++) d[i] = Math.random() * 2 - 1;
+            const n = audioCtx.createBufferSource();
+            const f = audioCtx.createBiquadFilter();
+            n.buffer = b;
+            f.type = 'lowpass';
+            f.frequency.value = 800;
+            n.connect(f);
+            f.connect(g);
+            g.gain.setValueAtTime(.5, now);
+            g.gain.exponentialRampToValueAtTime(.01, now + 1.5);
+            n.start(now);
+        } else if (type === 'tada') {
+            [523, 659, 783, 1046].forEach((freq, i) => {
+                const o = audioCtx.createOscillator();
+                const ig = audioCtx.createGain();
+                o.connect(ig);
+                ig.connect(audioCtx.destination);
+                o.frequency.value = freq;
+                ig.gain.setValueAtTime(.1, now + i * .1);
+                ig.gain.exponentialRampToValueAtTime(.01, now + i * .1 + .5);
+                o.start(now + i * .1);
+                o.stop(now + i * .1 + .5);
+            });
+        } else {
+            const o = audioCtx.createOscillator();
+            o.connect(g);
+            o.start(now);
+            if (type === 'click') {
+                o.type = 'sine';
+                o.frequency.setValueAtTime(800, now);
+                o.frequency.exponentialRampToValueAtTime(100, now + .1);
+                g.gain.setValueAtTime(.2, now);
+                g.gain.exponentialRampToValueAtTime(.01, now + .1);
+                o.stop(now + .1);
+            } else if (type === 'firework') {
+                o.type = 'sawtooth';
+                o.frequency.setValueAtTime(100, now);
+                o.frequency.exponentialRampToValueAtTime(20, now + .5);
+                g.gain.setValueAtTime(.3, now);
+                g.gain.exponentialRampToValueAtTime(.01, now + .5);
+                o.stop(now + .5);
+            } else if (type === 'pop') {
+                o.type = 'triangle';
+                o.frequency.linearRampToValueAtTime(600, now + .1);
+                g.gain.setValueAtTime(.2, now);
+                g.gain.linearRampToValueAtTime(.01, now + .2);
+                o.stop(now + .2);
+            }
+        }
+    }
+
+    function createWidget(type, data = null) {
+        const w = document.createElement('div');
+        w.className = 'widget';
+        w.dataset.type = type;
+
+        if (data) {
+            w.style.left = data.left;
+            w.style.top = data.top;
+            w.style.width = data.width;
+            w.style.height = data.height;
+            w.style.zIndex = data.zIndex || 10;
+            if (data.opacity) w.style.backgroundColor = `rgba(255,255,255,${data.opacity})`;
+            w.dataset.opacity = data.opacity || 0.95;
+        } else {
+            w.style.left = Math.max(50, Math.random() * (window.innerWidth - 400)) + 'px';
+            w.style.top = Math.max(50, Math.random() * (window.innerHeight - 500)) + 'px';
+        }
+
+        const extra = type === 'traffic' ? '<div class="ctrl-btn" onclick="toggleTrafficText(this)" title="隱藏文字"><i class="fa-solid fa-eye"></i></div>' : '';
+        w.innerHTML = `
+            <div class="widget-header">
+                <span class="widget-title">${titles[type] || type}</span>
+                <div class="header-controls">
+                    ${extra}
+                    <div class="ctrl-btn" onclick="toggleOpacitySlider(this)" title="調整透明度">
+                        <i class="fa-solid fa-droplet"></i>
+                        <div class="opacity-slider-container">
+                            <input type="range" min="0.2" max="1" step="0.1" value="${data?.opacity || 0.95}" class="opacity-slider" oninput="changeWidgetOpacity(this)">
+                        </div>
+                    </div>
+                    <div class="close-btn ctrl-btn" onclick="this.closest('.widget').remove()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="widget-content"></div>`;
+        
+        initWidgetContent(type, w.querySelector('.widget-content'), w, data);
+        workspace.appendChild(w);
+        makeDraggable(w);
+    }
+
+    function makeDraggable(el) {
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+
+        function dragStart(e) {
+            const evt = e.touches ? e.touches[0] : e;
+            if (e.target.matches('input, textarea, button, select, i, canvas, .light, .pasted-img-wrapper') ||
+                e.target.closest('.opacity-slider-container, .media-form, .media-item-row, .link-input-area') ||
+                e.target.isContentEditable) return;
+
+            const rect = el.getBoundingClientRect();
+            if (evt.clientX > rect.right - 20 && evt.clientY > rect.bottom - 20) return;
+
+            isDragging = true;
+            startX = evt.clientX;
+            startY = evt.clientY;
+            initialLeft = el.offsetLeft;
+            initialTop = el.offsetTop;
+
+            if (el.id !== 'mascot') {
+                document.querySelectorAll('.widget').forEach(w => w.style.zIndex = 10);
+                el.style.zIndex = 100;
+            } else if (!el.style.top) {
+                el.style.bottom = 'auto';
+                el.style.left = rect.left + 'px';
+                el.style.top = rect.top + 'px';
+            }
+
+            if (e.type === 'touchstart') {
+                document.addEventListener('touchmove', dragMove, { passive: false });
+                document.addEventListener('touchend', dragEnd, { passive: false });
+            } else {
+                document.addEventListener('mousemove', dragMove);
+                document.addEventListener('mouseup', dragEnd);
+            }
+        }
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            if (e.cancelable) e.preventDefault();
+            const evt = e.touches ? e.touches[0] : e;
+            el.style.left = (initialLeft + evt.clientX - startX) + "px";
+            el.style.top = (initialTop + evt.clientY - startY) + "px";
+            if (el.id === 'mascot') el.dataset.moved = 'true';
+        }
+
+        function dragEnd() {
+            isDragging = false;
+            document.removeEventListener('mousemove', dragMove);
+            document.removeEventListener('mouseup', dragEnd);
+            document.removeEventListener('touchmove', dragMove);
+            document.removeEventListener('touchend', dragEnd);
+        }
+
+        el.addEventListener('mousedown', dragStart);
+        el.addEventListener('touchstart', dragStart, { passive: false });
+    }
+    
+    makeDraggable(mascot);
+    mascot.addEventListener('click', () => { if (mascot.dataset.moved !== 'true') playSound('tada'); });
+
+    window.toggleOpacitySlider = b => {
+        const d = b.querySelector('.opacity-slider-container');
+        document.querySelectorAll('.opacity-slider-container.show').forEach(e => { if (e !== d) e.classList.remove('show'); });
+        d.classList.toggle('show');
+    };
+    
+    window.changeWidgetOpacity = i => {
+        const w = i.closest('.widget');
+        w.style.backgroundColor = `rgba(255,255,255,${i.value})`;
+        w.dataset.opacity = i.value;
+    };
+
+    function initWidgetContent(type, c, w, data) {
+        if (type === 'text') {
+            c.innerHTML = `<div class="text-toolbar">
+                <select class="text-select" onchange="formatText('fontName',this.value)" style="width:80px">
+                    <option value="Microsoft JhengHei">正黑體</option><option value="DFKai-SB">標楷體</option>
+                    <option value="sans-serif">黑體</option><option value="Comic Sans MS">卡漫</option>
+                </select>
+                <select class="text-select" onchange="applyFontSize(this.value)" style="width:60px">
+                    <option value="3">字號</option>${[12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 60, 72].map(s => `<option value="${s}">${s}px</option>`).join('')}
+                </select>
+                <div class="color-btn-wrapper" title="文字顏色" onmousedown="saveSelection()">
+                    <i class="fa-solid fa-palette"></i><input type="color" class="color-input-overlay" oninput="restoreAndFormat('foreColor',this.value)">
+                </div>
+                <button class="text-btn" onclick="formatText('bold')"><i class="fa-solid fa-bold"></i></button>
+                <button class="text-btn" onclick="formatText('italic')"><i class="fa-solid fa-italic"></i></button>
+                <button class="text-btn" onclick="formatText('underline')"><i class="fa-solid fa-underline"></i></button>
+                <button class="text-btn" onclick="toggleLinkInput(this)" title="連結" onmousedown="saveSelection()"><i class="fa-solid fa-link"></i></button>
+                <div class="link-input-area">
+                    <input type="text" class="link-text-input" placeholder="輸入網址..." onkeydown="if(event.key==='Enter')applyLink(this)">
+                    <button class="form-btn save" onclick="applyLink(this)">OK</button>
+                </div>
+                <div class="tool-divider"></div>
+                <button class="text-btn" onclick="formatText('insertOrderedList')"><i class="fa-solid fa-list-ol"></i></button>
+                <button class="text-btn" onclick="formatText('insertUnorderedList')"><i class="fa-solid fa-list-ul"></i></button>
+                <button class="text-btn" onclick="formatText('removeFormat')"><i class="fa-solid fa-eraser"></i></button>
+                <div class="tool-divider"></div>
+                <button class="text-btn" onclick="toggleMarquee(this)" title="跑馬燈/鎖定"><i class="fa-solid fa-rocket"></i></button>
+            </div>
+            <div class="text-editor" contenteditable="true" placeholder="點擊輸入..."></div>`;
+            const ed = c.querySelector('.text-editor');
+            if (data?.html) ed.innerHTML = data.html;
+            else { w.style.width = "400px"; w.style.height = "300px"; }
+            ed.addEventListener('click', e => {
+                if (e.target.tagName === 'A' && (ed.classList.contains('marquee-mode') || e.ctrlKey || e.metaKey)) window.open(e.target.href, '_blank');
+            });
+        } else if (type === 'media') {
+            c.innerHTML = `<div class="media-form">
+                <input type="text" class="media-input name" placeholder="名稱"><input type="text" class="media-input url" placeholder="網址">
+                <div class="media-form-btns"><button class="form-btn cancel" onclick="hideMediaForm(this)">取消</button><button class="form-btn save" onclick="saveMediaItem(this)">確定</button></div>
+            </div><div class="media-list"></div><button class="add-light-btn" onclick="showMediaForm(this)">+ 新增</button>`;
+            const lst = c.querySelector('.media-list');
+            lst.addEventListener('dragover', e => {
+                e.preventDefault();
+                const ae = getDragAfterElement(lst, e.clientY, '.media-item-row');
+                const d = document.querySelector('.media-item-row.dragging');
+                ae ? lst.insertBefore(d, ae) : lst.appendChild(d);
+            });
+            if (data?.items) data.items.forEach(i => renderMediaItem(lst, i.name, i.url));
+            if (!data) w.style.width = "300px";
+        } else if (type === 'stopwatch') {
+            c.innerHTML = `<div class="stopwatch-display">00:00.00</div>
+            <div class="timer-controls">
+                <button class="timer-btn" onclick="swLogic(this)"><i class="fa-solid fa-play"></i> 開始</button>
+                <button class="timer-btn" onclick="swLap(this)"><i class="fa-solid fa-flag"></i> 計次</button>
+                <button class="timer-btn reset" onclick="swReset(this)"><i class="fa-solid fa-rotate-right"></i></button>
+            </div><div class="lap-list"></div>`;
+            if (!data) w.style.width = "320px";
+            else if (data.laps) data.laps.forEach(l => c.querySelector('.lap-list').insertAdjacentHTML('afterbegin', `<div class="lap-item"><span class="lap-idx">${l.idx}</span><span class="lap-time">${l.time}</span><input class="lap-note" placeholder="註解..." value="${l.note || ''}"></div>`));
+        } else if (type === 'traffic') {
+            c.innerHTML = `<div class="traffic-container"></div><button class="add-light-btn" onclick="addTrafficRow(this)">+ 新增燈號</button>`;
+            if (data?.rows) data.rows.forEach(r => addTrafficRow(c.querySelector('.add-light-btn'), r.color, r.text, r.active));
+            else ['#ff5f57', '#ffbd2e', '#27c93f'].forEach((cl, i) => addTrafficRow(c.querySelector('.add-light-btn'), cl, ['禁止/安靜', '注意/輕聲', '開始/討論'][i]));
+            if (!data) w.style.width = "280px";
+        } else if (type === 'scoreboard') {
+            c.innerHTML = `<div class="score-container"></div><button class="add-light-btn" onclick="addTeam(this)">+ 新增組別</button>`;
+            const sc = c.querySelector('.score-container');
+            if (data?.teams) data.teams.forEach(t => sc.insertAdjacentHTML('beforeend', createTeamHTML(t.name, t.score)));
+            else sc.innerHTML = createTeamHTML('第一組') + createTeamHTML('第二組');
+            if (!data) w.style.width = "400px";
+        } else if (type === 'draw') {
+            c.innerHTML = `<div class="draw-wrapper">
+                <div class="draw-tools">
+                    <div class="color-pick active" style="background:black" onclick="setPen(this,'black')"></div>
+                    <div class="color-pick" style="background:#ff5f57" onclick="setPen(this,'#ff5f57')"></div>
+                    <div class="color-pick" style="background:#4a90e2" onclick="setPen(this,'#4a90e2')"></div>
+                    <div class="tool-separator"></div>
+                    <div class="draw-btn" onclick="setPen(this,'eraser')"><i class="fa-solid fa-eraser"></i></div>
+                    <div class="draw-btn" onclick="clearCanvas(this)"><i class="fa-solid fa-trash"></i></div>
+                    <div class="tool-separator"></div>
+                    <div class="draw-btn" id="moveModeBtn" onclick="toggleMoveMode(this)"><i class="fa-solid fa-up-down-left-right"></i></div>
+                    <div class="tool-separator"></div>
+                    <div class="draw-btn" onclick="setCanvasBg(this,'bg-white')"><i class="fa-regular fa-square"></i></div>
+                    <div class="draw-btn" onclick="setCanvasBg(this,'bg-grid')"><i class="fa-solid fa-border-all"></i></div>
+                    <div class="draw-btn" onclick="setCanvasBg(this,'bg-lines')"><i class="fa-solid fa-bars"></i></div>
+                </div>
+                <div class="canvas-container bg-white" tabindex="0"><div class="img-layer"></div><canvas></canvas></div>
+            </div>`;
+            if (!data) { w.style.width = "500px"; w.style.height = "400px"; }
+            setTimeout(() => initDraw(c, data?.canvasImg), 100);
+        } else if (type === 'clock') {
+            c.innerHTML = `<div style="font-size:3.5rem;font-weight:800;color:var(--text-main);line-height:1;font-family:monospace" class="clock-display">00:00:00</div>
+            <div style="font-size:1.2rem;color:#7f8c8d;margin-top:5px" class="date-display">...</div>`;
+            startClock(c);
+            if (!data) w.style.width = "340px";
+        } else if (type === 'dice') {
+            c.innerHTML = `<div style="font-size:6rem;cursor:pointer;color:var(--primary-color)" onclick="rollDice(this)"><i class="fa-solid fa-dice-one"></i></div>`;
+        } else if (type === 'timer') {
+            c.innerHTML = `<div class="timer-wrapper"><div class="timer-display">
+                <input type="number" value="05" class="timer-input min" onchange="padTime(this)"><span>:</span>
+                <input type="number" value="00" class="timer-input sec" onchange="padTime(this)">
+            </div>
+            <div class="timer-controls">
+                <button class="timer-btn" onclick="timerLogic(this)"><i class="fa-solid fa-play"></i> 開始</button>
+                <button class="timer-btn reset" onclick="timerReset(this)"><i class="fa-solid fa-rotate-right"></i></button>
+            </div></div>`;
+            if (!data) w.style.width = "320px";
+        } else if (type === 'randomizer') {
+            c.innerHTML = `<div class="randomizer-area"><div class="random-result"><i class="fa-solid fa-question" style="color:#ccc"></i></div>
+            <textarea class="names-input" placeholder="輸入名單，每行一個..." rows="5">${data ? data.names : ''}</textarea>
+            <button class="timer-btn" style="width:100%;justify-content:center;margin-top:10px" onclick="runRandomizer(this)">開始抽籤</button></div>`;
+            if (!data) w.style.width = "300px";
+        } else if (type === 'calendar') {
+            c.innerHTML = `<div class="cal-container" style="width:100%"></div>`;
+            initCalendar(c.querySelector('.cal-container'));
+            if (!data) w.style.width = "300px";
+        }
+    }
+
+    function saveSelection() {
+        const s = window.getSelection();
+        if (s.rangeCount > 0) {
+            const e = s.anchorNode.nodeType === 3 ? s.anchorNode.parentElement.closest('.text-editor') : s.anchorNode.closest('.text-editor');
+            if (e) lastSelection = s.getRangeAt(0);
+        }
+    }
+    
+    function restoreAndFormat(c, v) {
+        if (lastSelection) {
+            const s = window.getSelection();
+            s.removeAllRanges();
+            s.addRange(lastSelection);
+        }
+        document.execCommand(c, !1, v);
+    }
+    
+    function formatText(c, v = null) { document.execCommand(c, !1, v); }
+    
+    function applyFontSize(s) {
+        const sel = window.getSelection();
+        if (sel.rangeCount) {
+            const sp = document.createElement("span");
+            sp.style.fontSize = s + "px";
+            sp.innerHTML = sel.toString();
+            sel.getRangeAt(0).deleteContents();
+            sel.getRangeAt(0).insertNode(sp);
+        }
+    }
+    
+    function toggleLinkInput(btn) {
+        const a = btn.parentElement.querySelector('.link-input-area');
+        a.classList.toggle('show');
+        if (a.classList.contains('show')) a.querySelector('input').focus();
+    }
+    
+    function applyLink(el) {
+        const p = el.parentElement, u = p.querySelector('input').value;
+        if (u) {
+            if (lastSelection) {
+                const s = window.getSelection();
+                s.removeAllRanges();
+                s.addRange(lastSelection);
+            }
+            formatText("createLink", u);
+            p.classList.remove('show');
+            p.querySelector('input').value = '';
+        }
+    }
+    
+    function toggleMarquee(btn) {
+        const ed = btn.closest('.widget-content').querySelector('.text-editor');
+        const isM = ed.classList.toggle('marquee-mode');
+        if (isM) {
+            ed.contentEditable = "false";
+            btn.classList.add('active');
+            ed.innerHTML = `<div class="marquee-content">${ed.innerHTML}</div>`;
+        } else {
+            ed.contentEditable = "true";
+            btn.classList.remove('active');
+            if (ed.querySelector('.marquee-content')) ed.innerHTML = ed.querySelector('.marquee-content').innerHTML;
+        }
+    }
+
+    function showMediaForm(btn, name = '', url = '') {
+        const f = btn.parentElement.querySelector('.media-form');
+        f.classList.add('show');
+        f.querySelector('.name').value = name;
+        f.querySelector('.url').value = url;
+        window.currentEditingMedia = name ? btn.closest('.media-item-row') : null;
+    }
+    
+    function hideMediaForm(btn) {
+        btn.closest('.media-form').classList.remove('show');
+        window.currentEditingMedia = null;
+    }
+    
+    function saveMediaItem(btn) {
+        const f = btn.closest('.media-form');
+        const n = f.querySelector('.name').value, u = f.querySelector('.url').value;
+        const l = f.parentElement.querySelector('.media-list');
+        if (!n || !u) return;
+        if (window.currentEditingMedia) l.replaceChild(createMediaItemDOM(n, u), window.currentEditingMedia);
+        else renderMediaItem(l, n, u);
+        hideMediaForm(btn);
+    }
+    
+    function renderMediaItem(c, n, u) { c.appendChild(createMediaItemDOM(n, u)); }
+    
+    function createMediaItemDOM(n, u) {
+        const i = document.createElement('div');
+        i.className = 'media-item-row';
+        i.draggable = !0;
+        i.dataset.name = n;
+        i.dataset.url = u;
+        i.innerHTML = `<div class="media-drag-handle"><i class="fa-solid fa-grip-vertical"></i></div><a href="${u}" target="_blank" class="clean-link-btn"><i class="fa-solid fa-link"></i> ${n}</a><div class="media-actions-inline"><div class="action-icon edit" onclick="editMediaItem(this)"><i class="fa-solid fa-pen"></i></div><div class="action-icon del" onclick="this.closest('.media-item-row').remove()"><i class="fa-solid fa-trash-can"></i></div></div>`;
+        i.addEventListener('dragstart', () => i.classList.add('dragging'));
+        i.addEventListener('dragend', () => i.classList.remove('dragging'));
+        return i;
+    }
+    
+    function editMediaItem(btn) {
+        const i = btn.closest('.media-item-row');
+        showMediaForm(i.closest('.widget-content').querySelector('.add-light-btn'), i.dataset.name, i.dataset.url);
+        window.currentEditingMedia = i;
+    }
+
+    function getDragAfterElement(container, y, selector) {
+        return [...container.querySelectorAll(selector + ':not(.dragging)')].reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            return (offset < 0 && offset > closest.offset) ? { offset: offset, element: child } : closest;
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function saveState() {
+        const s = {
+            bg: window.bgState || { type: 'image', val: 1 },
+            widgets: [],
+            mascot: { left: mascot.style.left, top: mascot.style.top }
+        };
+        document.querySelectorAll('.widget').forEach(w => {
+            const d = { type: w.dataset.type, left: w.style.left, top: w.style.top, width: w.style.width, height: w.style.height, zIndex: w.style.zIndex, opacity: w.dataset.opacity || 0.95 };
+            const c = w.querySelector('.widget-content');
+            if (d.type === 'text') {
+                const e = c.querySelector('.text-editor');
+                d.html = e.classList.contains('marquee-mode') ? e.querySelector('.marquee-content').innerHTML : e.innerHTML;
+            } else if (d.type === 'media') {
+                d.items = []; c.querySelectorAll('.media-item-row').forEach(i => d.items.push({ name: i.dataset.name, url: i.dataset.url }));
+            } else if (d.type === 'stopwatch') {
+                d.laps = []; c.querySelectorAll('.lap-item').forEach(l => d.laps.push({ idx: l.querySelector('.lap-idx').innerText, time: l.querySelector('.lap-time').innerText, note: l.querySelector('.lap-note').value }));
+            } else if (d.type === 'traffic') {
+                d.rows = []; c.querySelectorAll('.traffic-row').forEach(r => d.rows.push({ text: r.querySelector('.traffic-input').value, color: r.querySelector('.light').style.background, active: r.querySelector('.light').classList.contains('active') }));
+            } else if (d.type === 'scoreboard') {
+                d.teams = []; c.querySelectorAll('.score-team').forEach(t => d.teams.push({ name: t.querySelector('input').value, score: t.querySelector('.score-num').innerText }));
+            } else if (d.type === 'randomizer') d.names = c.querySelector('textarea').value;
+            else if (d.type === 'draw') d.canvasImg = c.querySelector('canvas').toDataURL();
+            s.widgets.push(d);
+        });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(s)], { type: "application/json" }));
+        a.download = `LiyuChillGuy_Backup_${(new Date()).toISOString().slice(0, 10)}.json`;
+        a.click();
+    }
+    
+    function loadState(inp) {
+        const f = inp.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = e => {
+            try {
+                const s = JSON.parse(e.target.result);
+                if (s.bg) setBg(s.bg.type, s.bg.val);
+                workspace.innerHTML = '';
+                s.widgets.forEach(w => createWidget(w.type, w));
+                if (s.mascot?.left) { mascot.style.left = s.mascot.left; mascot.style.top = s.mascot.top; mascot.style.bottom = 'auto'; }
+            } catch (err) {}
+        };
+        r.readAsText(f);
+        inp.value = '';
+    }
+
+    function toggleEffectsMenu() {
+        document.getElementById('effectsMenu').classList.toggle('open');
+        document.querySelector('.fab-main').classList.toggle('active');
+    }
+    
+    function triggerEffect(t) {
+        const l = document.getElementById('effects-layer');
+        if (t === 'firework') {
+            playSound('firework');
+            for (let i = 0; i < 30; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.cssText = `left:${Math.random() * window.innerWidth}px;top:${Math.random() * window.innerHeight}px;width:10px;height:10px;background:hsl(${Math.random() * 360},100%,50%);border-radius:50%`;
+                p.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${(Math.random() - .5) * 200}px, ${(Math.random() - .5) * 200}px) scale(0)`, opacity: 0 }], { duration: 1000, easing: 'ease-out' }).onfinish = () => p.remove();
+                l.appendChild(p);
+            }
+        } else if (t === 'heart' || t === 'thumb') {
+            if (t === 'thumb') playSound('pop');
+            for (let i = 0; i < 15; i++) {
+                const e = document.createElement('div');
+                e.className = 'float-emoji';
+                e.innerText = t === 'heart' ? '🩷🧡💛💚💙🩵💜' : '🙌🫶🤟🫰👍';
+                e.style.left = (Math.random() * 80 + 10) + '%';
+                e.style.setProperty('--x-sway', (Math.random() * 100 - 50) + 'px');
+                e.style.animationDelay = Math.random() + 's';
+                l.appendChild(e);
+                setTimeout(() => e.remove(), 4000);
+            }
+        } else if (t === 'clap') {
+            playSound('clap');
+            for (let i = 0; i < 50; i++) {
+                const c = document.createElement('div');
+                c.className = 'particle';
+                c.style.cssText = `left:${Math.random() * 100}%;top:-10px;width:5px;height:15px;background:${['red', 'gold', 'blue', 'green'][Math.floor(Math.random() * 4)]}`;
+                c.animate([{ transform: 'translateY(0) rotate(0deg)', opacity: 1 }, { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }], { duration: 2000 + Math.random() * 1000 }).onfinish = () => c.remove();
+                l.appendChild(c);
+            }
+        }
+    }
+
+    function toggleTrafficText(btn) {
+        const c = btn.closest('.widget').querySelector('.traffic-container');
+        const h = c.classList.toggle('traffic-hide-text');
+        btn.innerHTML = h ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>';
+    }
+    
+    function toggleLight(el) {
+        el.parentElement.parentElement.querySelectorAll('.light').forEach(l => l.classList.remove('active'));
+        el.classList.add('active');
+        playSound('click');
+    }
+    
+    function addTrafficRow(btn, color = null, text = '', active = false) {
+        const c = btn.previousElementSibling;
+        const r = document.createElement('div');
+        r.className = 'traffic-row';
+        r.draggable = !0;
+        r.innerHTML = `<div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div><div class="light ${active ? 'active' : ''}" style="background:${color || '#9b59b6'}" onclick="toggleLight(this)"></div><input type="text" class="traffic-input" value="${text}" placeholder="事項"><div class="traffic-del" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></div>`;
+        r.addEventListener('dragstart', () => r.classList.add('dragging'));
+        r.addEventListener('dragend', () => r.classList.remove('dragging'));
+        c.addEventListener('dragover', e => {
+            e.preventDefault();
+            const ae = getDragAfterElement(c, e.clientY, '.traffic-row');
+            const d = document.querySelector('.dragging');
+            ae ? c.insertBefore(d, ae) : c.appendChild(d);
+        });
+        c.appendChild(r);
+    }
+
+    function initDraw(c, img) {
+        const cn = c.querySelector('.canvas-container'), cv = cn.querySelector('canvas'), il = cn.querySelector('.img-layer'), ctx = cv.getContext('2d');
+        let move = false, paint = false, col = 'black', eras = false;
+        new ResizeObserver(() => {
+            const t = document.createElement('canvas'); t.width = cv.width; t.height = cv.height;
+            t.getContext('2d').drawImage(cv, 0, 0); cv.width = cn.clientWidth; cv.height = cn.clientHeight;
+            ctx.drawImage(t, 0, 0);
+            if (img && !cv.r) { const i = new Image(); i.onload = () => ctx.drawImage(i, 0, 0); i.src = img; cv.r = 1; }
+        }).observe(cn);
+        
+        window.setPen = (e, color) => {
+            e.parentElement.querySelectorAll('.color-pick,.draw-btn').forEach(x => x.classList.remove('active'));
+            e.classList.add('active'); move = false; cn.classList.remove('mode-move');
+            c.querySelector('#moveModeBtn').classList.remove('active');
+            eras = (color === 'eraser');
+            if (!eras) col = color;
+        };
+        window.clearCanvas = () => { ctx.clearRect(0, 0, cv.width, cv.height); il.innerHTML = ''; playSound('click'); };
+        window.setCanvasBg = (b, cls) => { cn.classList.remove('bg-white', 'bg-grid', 'bg-lines'); cn.classList.add(cls); };
+        window.toggleMoveMode = (b) => {
+            move = !move; b.classList.toggle('active', move); cn.classList.toggle('mode-move', move);
+            if (move) c.querySelectorAll('.color-pick,.draw-btn[onclick*="setPen"]').forEach(x => x.classList.remove('active'));
+        };
+        
+        const gp = e => { const r = cv.getBoundingClientRect(); return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top }; };
+        const dr = e => {
+            if (!paint) return;
+            const p = gp(e);
+            ctx.lineWidth = eras ? 25 : 4; ctx.lineCap = 'round'; ctx.strokeStyle = eras ? 'rgba(0,0,0,1)' : col;
+            ctx.globalCompositeOperation = eras ? 'destination-out' : 'source-over';
+            ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+        };
+        
+        cv.addEventListener('mousedown', e => { if (move || e.target !== cv) return; paint = true; dr(e); });
+        cv.addEventListener('mousemove', dr);
+        window.addEventListener('mouseup', () => { paint = false; ctx.beginPath(); });
+        cv.addEventListener('touchstart', e => { if (move || e.target !== cv) return; paint = true; dr(e); }, { passive: false });
+        cv.addEventListener('touchmove', dr, { passive: false });
+        
+        cn.addEventListener('paste', e => {
+            for (let i of (e.clipboardData || e.originalEvent.clipboardData).items)
+                if (i.type.indexOf('image') === 0) {
+                    const r = new FileReader();
+                    r.onload = evt => {
+                        const d = document.createElement('div');
+                        d.className = 'pasted-img-wrapper';
+                        d.style.cssText = 'left:10px;top:10px;width:150px';
+                        d.innerHTML = `<img src="${evt.target.result}"><div class="resize-handle"></div>`;
+                        il.appendChild(d);
+                        dragImg(d);
+                        if (!move) window.toggleMoveMode(c.querySelector('#moveModeBtn'));
+                    };
+                    r.readAsDataURL(i.getAsFile());
+                }
+        });
+
+        function dragImg(el) {
+            let sx, sy, sw, sh, sl, st;
+            el.onmousedown = e => {
+                if (!move) return;
+                e.stopPropagation();
+                il.querySelectorAll('.pasted-img-wrapper').forEach(x => x.classList.remove('selected'));
+                el.classList.add('selected');
+                sx = e.clientX; sy = e.clientY;
+                if (e.target.classList.contains('resize-handle')) {
+                    sw = parseInt(getComputedStyle(el).width); sh = parseInt(getComputedStyle(el).height);
+                    document.documentElement.addEventListener('mousemove', rs);
+                    document.documentElement.addEventListener('mouseup', stop);
+                } else {
+                    sl = el.offsetLeft; st = el.offsetTop;
+                    document.documentElement.addEventListener('mousemove', mv);
+                    document.documentElement.addEventListener('mouseup', stop);
+                }
+            };
+            const mv = e => { el.style.left = (sl + e.clientX - sx) + 'px'; el.style.top = (st + e.clientY - sy) + 'px'; };
+            const rs = e => { el.style.width = (sw + e.clientX - sx) + 'px'; el.style.height = (sh + e.clientY - sy) + 'px'; };
+            const stop = () => {
+                document.documentElement.removeEventListener('mousemove', mv);
+                document.documentElement.removeEventListener('mousemove', rs);
+                document.documentElement.removeEventListener('mouseup', stop);
+            };
+        }
+    }
+
+    function startClock(c) {
+        const t = c.querySelector('.clock-display'), d = c.querySelector('.date-display');
+        setInterval(() => {
+            const n = new Date();
+            t.innerText = n.toLocaleTimeString('zh-TW', { hour12: false });
+            d.innerText = n.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+        }, 1000);
+    }
+    
+    function rollDice(e) {
+        let c = 0, t = setInterval(() => {
+            e.innerHTML = `<i class="fa-solid fa-dice-${['one', 'two', 'three', 'four', 'five', 'six'][Math.floor(Math.random() * 6)]}"></i>`;
+            if ( ++c > 10) { clearInterval(t); playSound('pop'); }
+        }, 50);
+    }
+    
+    function padTime(i) { i.value = Math.max(0, parseInt(i.value) || 0).toString().padStart(2, '0'); }
+    
+    function timerLogic(b) {
+        const w = b.closest('.timer-wrapper'), [m, s] = w.querySelectorAll('input');
+        if (w.id) {
+            clearInterval(w.id); w.id = null; b.innerHTML = '<i class="fa-solid fa-play"></i> 繼續';
+        } else {
+            let t = parseInt(m.value) * 60 + parseInt(s.value);
+            if (t <= 0) return;
+            m.disabled = s.disabled = !0;
+            b.innerHTML = '<i class="fa-solid fa-pause"></i> 暫停';
+            w.id = setInterval(() => {
+                if (t <= 0) {
+                    clearInterval(w.id); w.id = null;
+                    m.disabled = s.disabled = !1;
+                    b.innerHTML = '<i class="fa-solid fa-play"></i> 開始';
+                    w.querySelector('.timer-display').style.color = 'red';
+                    playSound('tada');
+                    return;
+                }
+                t--;
+                m.value = Math.floor(t / 60).toString().padStart(2, '0');
+                s.value = (t % 60).toString().padStart(2, '0');
+            }, 1000);
+        }
+    }
+    
+    function timerReset(b) {
+        const w = b.closest('.timer-wrapper');
+        clearInterval(w.id); w.id = null;
+        const [m, s] = w.querySelectorAll('input');
+        m.disabled = s.disabled = !1;
+        m.value = "05"; s.value = "00";
+        w.querySelector('.timer-display').style.color = '#333';
+        w.querySelector('.timer-btn').innerHTML = '<i class="fa-solid fa-play"></i> 開始';
+    }
+    
+    function swReset(b) {
+        const d = b.closest('.widget-content');
+        clearInterval(d.sw?.i);
+        d.sw = { t: 0, e: 0, i: null };
+        d.querySelector('.stopwatch-display').innerText = "00:00.00";
+        d.querySelector('.lap-list').innerHTML = '';
+        d.querySelector('.timer-btn').innerHTML = '<i class="fa-solid fa-play"></i> 開始';
+    }
+    
+    function swLogic(b) {
+        const d = b.closest('.widget-content'), dp = d.querySelector('.stopwatch-display');
+        d.sw = d.sw || { t: 0, e: 0, i: null };
+        if (d.sw.i) {
+            clearInterval(d.sw.i); d.sw.i = null; d.sw.e += Date.now() - d.sw.t;
+            b.innerHTML = '<i class="fa-solid fa-play"></i> 繼續';
+        } else {
+            d.sw.t = Date.now();
+            b.innerHTML = '<i class="fa-solid fa-pause"></i> 暫停';
+            d.sw.i = setInterval(() => {
+                const e = Date.now() - d.sw.t + d.sw.e;
+                const m = Math.floor(e / 60000), s = Math.floor((e % 60000) / 1000), ms = Math.floor((e % 1000) / 10);
+                dp.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+            }, 10);
+        }
+    }
+    
+    function swLap(b) {
+        const d = b.closest('.widget-content'), t = d.querySelector('.stopwatch-display').innerText, l = d.querySelector('.lap-list');
+        l.insertAdjacentHTML('afterbegin', `<div class="lap-item"><span class="lap-idx">${l.children.length + 1}</span><span class="lap-time">${t}</span><input class="lap-note" placeholder="註解..."></div>`);
+    }
+    
+    function runRandomizer(b) {
+        const a = b.parentElement, n = a.querySelector('textarea').value.split('\n').filter(x => x.trim());
+        if (!n.length) return;
+        let c = 0; b.disabled = !0;
+        const t = setInterval(() => {
+            a.querySelector('.random-result').innerText = n[Math.floor(Math.random() * n.length)];
+            if (++c > 20) { clearInterval(t); playSound('tada'); b.disabled = !1; }
+        }, 80);
+    }
+    
+    function initCalendar(c) {
+        let d = new Date;
+        const r = () => {
+            const y = d.getFullYear(), m = d.getMonth();
+            let h = `<div style="display:flex;justify-content:space-between;margin-bottom:10px;font-weight:bold"><span onclick="calNav(-1)" style="cursor:pointer">&lt;</span> ${y}年${m + 1}月 <span onclick="calNav(1)" style="cursor:pointer">&gt;</span></div><div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:5px">`;
+            ['日', '一', '二', '三', '四', '五', '六'].forEach(k => h += `<div style="color:#888;font-size:12px">${k}</div>`);
+            for (let i = 0; i < new Date(y, m, 1).getDay(); i++) h += `<div></div>`;
+            const t = new Date;
+            for (let i = 1; i <= new Date(y, m + 1, 0).getDate(); i++) h += `<div style="padding:5px;${(i === t.getDate() && m === t.getMonth() && y === t.getFullYear()) ? 'background:var(--primary-color);color:#fff;border-radius:50%' : ''}">${i}</div>`;
+            c.innerHTML = h + '</div>';
+        };
+        window.calNav = x => { d.setMonth(d.getMonth() + x); r(); };
+        r();
+    }
+    
+    function createTeamHTML(n, s = '0') {
+        return `<div class="score-team">
+            <div class="score-del" style="position:absolute;top:5px;right:8px;cursor:pointer;color:#ccc" onclick="this.closest('.score-team').remove()">✕</div>
+            <input type="text" value="${n}" style="border:none;text-align:center;font-weight:bold;width:100%;background:0 0;margin-bottom:5px">
+            <div class="score-num">${s}</div>
+            <div class="score-actions">
+                <button class="score-ctrl-btn" onclick="modScore(this,-1)"><i class="fa-solid fa-minus"></i></button>
+                <button class="score-ctrl-btn" onclick="modScore(this,1)"><i class="fa-solid fa-plus"></i></button>
+            </div>
+        </div>`;
+    }
+    
+    function addTeam(b) {
+        const c = b.previousElementSibling, n = c.querySelectorAll('.score-team').length;
+        c.insertAdjacentHTML('beforeend', createTeamHTML(n < 10 ? `第${['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'][n]}組` : `第${n + 1}組`));
+    }
+    
+    function modScore(b, d) {
+        const n = b.parentElement.previousElementSibling;
+        n.innerText = Math.max(0, parseInt(n.innerText) + d);
+    }
 </script>
 </body>
 </html>
