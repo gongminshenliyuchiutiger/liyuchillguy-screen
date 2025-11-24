@@ -1343,7 +1343,7 @@ textarea.names-input {
         'clock': '時鐘', 'calendar': '日曆', 'scoreboard': '記分板', 
         'dice': '擲骰子', 'draw': '畫板'
     };
-    const BG_MAX = 10;
+    const BG_MAX = 25;
     
     let lastSelection = null;
     let clearTimer = null;
@@ -1355,7 +1355,7 @@ textarea.names-input {
         h += `<hr style="margin:4px 0;border:0;border-top:1px solid #eee">
               <div class="bg-option" onclick="setBg('color','#eef2f5')">🎨 簡約灰白</div>
               <div class="bg-option" onclick="setBg('color','#2c3e50')">🌙 深色模式</div>
-              <div class="bg-option" onclick="setBg('color','#a8e6cf')">🍃 清新綠意</div>`;
+              <div class="bg-option" onclick="setBg('color','#336600')">🍃 清新綠意</div>`;
         bgMenu.innerHTML = h;
     }
     initBgMenu();
