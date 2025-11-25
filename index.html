@@ -57,18 +57,21 @@ body {
     pointer-events: none;
 }
 
+/* 吉祥物 */
 #mascot {
     position: absolute;
     bottom: 15px;
     left: 20px;
     width: 120px;
     height: auto;
+    max-height: 50vh;
     z-index: 150;
     cursor: grab;
     filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
     pointer-events: auto;
     transition: transform .2s;
     touch-action: none;
+    transform-origin: bottom center;
 }
 
 #mascot:active {
@@ -80,6 +83,7 @@ body {
     transform: scale(1.05) rotate(-5deg);
 }
 
+/* 工具列 */
 .toolbar-wrapper {
     position: relative;
     margin-bottom: 30px;
@@ -204,6 +208,7 @@ body {
     margin: 5px 0;
 }
 
+/* 特效選單 */
 .effects-menu {
     position: fixed;
     bottom: 30px;
@@ -330,24 +335,58 @@ body {
     to { opacity: 0; transform: translateY(20px); }
 }
 
+/* 視窗 Widget 樣式 */
 .widget {
     position: absolute;
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
-    min-width: 250px;
-    min-height: 150px;
+    min-width: 200px;
+    min-height: 100px;
     display: flex;
     flex-direction: column;
     pointer-events: auto;
     animation: popIn .3s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 10;
     border: 1px solid var(--glass-border);
-    resize: both;
     overflow: hidden;
     transition: background-color .2s;
     touch-action: none;
+    transform-origin: 0 0; /* 縮放原點設為左上角 */
+}
+
+/* 等比縮放手把 (放大鏡功能) */
+.widget-scale-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 25px;
+    height: 25px;
+    cursor: nwse-resize;
+    z-index: 20;
+    background: linear-gradient(135deg, transparent 50%, rgba(74, 144, 226, 0.5) 50%);
+    border-bottom-right-radius: var(--radius-lg);
+    transition: opacity 0.2s;
+}
+.widget-scale-handle:hover {
+    background: linear-gradient(135deg, transparent 50%, var(--primary-color) 50%);
+}
+
+/* 寬度調整手把 (拉寬功能) */
+.widget-width-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 25px; /* 避開縮放手把 */
+    width: 8px;
+    cursor: e-resize;
+    z-index: 19;
+    transition: background .2s;
+}
+.widget-width-handle:hover {
+    background: rgba(0, 0, 0, 0.1);
+    border-right: 2px solid var(--primary-color);
 }
 
 @keyframes popIn {
@@ -453,6 +492,7 @@ body {
     border-radius: 3px;
 }
 
+/* 連結/媒體樣式 */
 .media-list {
     width: 100%;
     display: flex;
@@ -589,6 +629,7 @@ body {
     color: #555;
 }
 
+/* 文字公告樣式 */
 .text-toolbar {
     display: flex;
     gap: 4px;
@@ -758,6 +799,7 @@ body {
     border-radius: 3px;
 }
 
+/* 碼錶樣式 */
 .stopwatch-display {
     font-size: 3.5rem;
     font-family: monospace;
@@ -803,6 +845,7 @@ body {
     font-size: 12px;
 }
 
+/* 畫板樣式 */
 .draw-wrapper {
     display: flex;
     flex-direction: column;
@@ -952,7 +995,8 @@ canvas {
     display: block;
 }
 
-.bg-menu {
+/* 背景與吉祥物選單 */
+.bg-menu, .mascot-menu {
     display: none;
     position: absolute;
     background: rgba(255, 255, 255, .95);
@@ -968,7 +1012,7 @@ canvas {
     overflow-y: auto;
 }
 
-.bg-menu.show {
+.bg-menu.show, .mascot-menu.show {
     display: flex;
     animation: fadeInUp .2s;
 }
@@ -978,7 +1022,7 @@ canvas {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.bg-option {
+.bg-option, .mascot-option {
     padding: 8px 12px;
     cursor: pointer;
     font-size: 13px;
@@ -986,12 +1030,13 @@ canvas {
     color: #333;
 }
 
-.bg-option:hover {
+.bg-option:hover, .mascot-option:hover {
     background: #f0f4f8;
     color: var(--primary-color);
     font-weight: bold;
 }
 
+/* 紅綠燈樣式 */
 .traffic-container {
     display: flex;
     flex-direction: column;
@@ -1093,6 +1138,7 @@ canvas {
     margin-top: 5px;
 }
 
+/* 計時器樣式 */
 .timer-wrapper {
     text-align: center;
     width: 100%;
@@ -1153,6 +1199,7 @@ canvas {
     box-shadow: none;
 }
 
+/* 記分板樣式 */
 .score-container {
     display: flex;
     gap: 15px;
@@ -1236,7 +1283,7 @@ textarea.names-input {
     font-family: monospace;
 }
 
-#importFile {
+#importFile, #bgUpload, #mascotUpload {
     display: none;
 }
 </style>
@@ -1244,8 +1291,12 @@ textarea.names-input {
 <body>
 <div id="workspace"></div>
 <div id="effects-layer"></div>
-<img src="image/LiyuChillGuy.svg" alt="LiyuChillGuy" id="mascot" title="按我一下!">
+<img src="image/LiyuChillGuy.svg" alt="LiyuChillGuy" id="mascot" title="按我一下! (右鍵可更換圖片)">
+
+<!-- 檔案上傳 Input -->
 <input type="file" id="importFile" accept=".json" onchange="loadState(this)">
+<input type="file" id="bgUpload" accept="image/*" onchange="handleBgUpload(this)">
+<input type="file" id="mascotUpload" accept="image/*" onchange="handleMascotUpload(this)">
 
 <div class="effects-menu" id="effectsMenu">
     <div class="fab-options">
@@ -1258,6 +1309,10 @@ textarea.names-input {
 </div>
 
 <div id="bgMenu" class="bg-menu"></div>
+<div id="mascotMenu" class="mascot-menu">
+    <div class="mascot-option" onclick="document.getElementById('mascotUpload').click()">📂 更換圖片...</div>
+    <div class="mascot-option" onclick="resetMascot()">🔄 重置回預設</div>
+</div>
 
 <div class="toolbar-wrapper" id="toolbarWrapper">
     <div class="toggle-bar-btn" onclick="toggleToolbar()" title="縮小/展開工具列">
@@ -1335,6 +1390,7 @@ textarea.names-input {
     const bgBtn = document.getElementById('bgBtn');
     const bgMenu = document.getElementById('bgMenu');
     const mascot = document.getElementById('mascot');
+    const mascotMenu = document.getElementById('mascotMenu');
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
     const titles = {
@@ -1343,14 +1399,16 @@ textarea.names-input {
         'clock': '時鐘', 'calendar': '日曆', 'scoreboard': '記分板', 
         'dice': '擲骰子', 'draw': '畫板'
     };
-    const BG_MAX = 25;
+    const BG_MAX = 30;
+    const DEFAULT_MASCOT_SRC = 'image/LiyuChillGuy.svg';
     
     let lastSelection = null;
     let clearTimer = null;
     window.bgIdx = 1;
 
     function initBgMenu() {
-        let h = '';
+        let h = `<div class="bg-option" onclick="document.getElementById('bgUpload').click()">📂 上傳自訂背景...</div>
+                 <hr style="margin:4px 0;border:0;border-top:1px solid #eee">`;
         for (let i = 1; i <= BG_MAX; i++) h += `<div class="bg-option" onclick="setBg('image',${i})">🖼️ 背景 ${i}</div>`;
         h += `<hr style="margin:4px 0;border:0;border-top:1px solid #eee">
               <div class="bg-option" onclick="setBg('color','#eef2f5')">🎨 簡約灰白</div>
@@ -1369,8 +1427,17 @@ textarea.names-input {
         bgMenu.classList.add('show');
     });
 
+    mascot.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        mascotMenu.style.left = e.clientX + 'px';
+        mascotMenu.style.top = e.clientY + 'px';
+        mascotMenu.classList.add('show');
+    });
+
     document.addEventListener('click', (e) => {
         if (!bgBtn.contains(e.target) && !bgMenu.contains(e.target)) bgMenu.classList.remove('show');
+        if (!mascot.contains(e.target) && !mascotMenu.contains(e.target)) mascotMenu.classList.remove('show');
         if (!e.target.closest('.ctrl-btn')) document.querySelectorAll('.opacity-slider-container.show').forEach(el => el.classList.remove('show'));
     });
 
@@ -1379,11 +1446,43 @@ textarea.names-input {
         if (type === 'image') {
             document.body.style.backgroundImage = `url('background/background${String(val).padStart(3, '0')}.png')`;
             window.bgIdx = val;
-        } else {
+        } else if (type === 'color') {
             document.body.style.backgroundImage = 'none';
             document.body.style.backgroundColor = val;
+        } else if (type === 'custom') {
+            document.body.style.backgroundImage = `url('${val}')`;
         }
         bgMenu.classList.remove('show');
+    }
+
+    function handleBgUpload(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                setBg('custom', e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+        input.value = '';
+    }
+
+    function handleMascotUpload(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                mascot.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        input.value = '';
+        mascotMenu.classList.remove('show');
+    }
+
+    function resetMascot() {
+        mascot.src = DEFAULT_MASCOT_SRC;
+        mascotMenu.classList.remove('show');
     }
 
     function toggleToolbar() {
@@ -1472,6 +1571,7 @@ textarea.names-input {
         w.className = 'widget';
         w.dataset.type = type;
 
+        // 初始化位置
         if (data) {
             w.style.left = data.left;
             w.style.top = data.top;
@@ -1480,12 +1580,22 @@ textarea.names-input {
             w.style.zIndex = data.zIndex || 10;
             if (data.opacity) w.style.backgroundColor = `rgba(255,255,255,${data.opacity})`;
             w.dataset.opacity = data.opacity || 0.95;
+            
+            // 恢復縮放比例
+            if (data.scale) {
+                w.dataset.scale = data.scale;
+                w.style.transform = `scale(${data.scale})`;
+            } else {
+                w.dataset.scale = 1;
+            }
         } else {
             w.style.left = Math.max(50, Math.random() * (window.innerWidth - 400)) + 'px';
             w.style.top = Math.max(50, Math.random() * (window.innerHeight - 500)) + 'px';
+            w.dataset.scale = 1;
         }
 
         const extra = type === 'traffic' ? '<div class="ctrl-btn" onclick="toggleTrafficText(this)" title="隱藏文字"><i class="fa-solid fa-eye"></i></div>' : '';
+        // 增加 widget-width-handle 和 widget-scale-handle
         w.innerHTML = `
             <div class="widget-header">
                 <span class="widget-title">${titles[type] || type}</span>
@@ -1502,11 +1612,113 @@ textarea.names-input {
                     </div>
                 </div>
             </div>
-            <div class="widget-content"></div>`;
+            <div class="widget-content"></div>
+            <div class="widget-width-handle" title="拖曳調整寬度"></div>
+            <div class="widget-scale-handle" title="拖曳縮放大小"></div>`;
         
         initWidgetContent(type, w.querySelector('.widget-content'), w, data);
         workspace.appendChild(w);
         makeDraggable(w);
+        makeScalable(w);
+        makeResizableWidth(w); // 新增寬度調整邏輯
+    }
+
+    // 新增：寬度調整功能 (拉寬)
+    function makeResizableWidth(el) {
+        const handle = el.querySelector('.widget-width-handle');
+        if (!handle) return;
+        
+        let startX, startWidth, currentScale;
+
+        function initResizeW(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const evt = e.touches ? e.touches[0] : e;
+            startX = evt.clientX;
+            startWidth = parseFloat(getComputedStyle(el).width);
+            currentScale = parseFloat(el.dataset.scale || 1);
+
+            if (e.type === 'touchstart') {
+                document.addEventListener('touchmove', resizeWMove, { passive: false });
+                document.addEventListener('touchend', stopResizeW, { passive: false });
+            } else {
+                document.addEventListener('mousemove', resizeWMove);
+                document.addEventListener('mouseup', stopResizeW);
+            }
+        }
+
+        function resizeWMove(e) {
+            e.preventDefault();
+            const evt = e.touches ? e.touches[0] : e;
+            const deltaX = evt.clientX - startX;
+            // 因為有 transform scale，滑鼠移動距離需要除以 scale 才是真實增加的 width 像素
+            const newWidth = startWidth + (deltaX / currentScale);
+            
+            if (newWidth > 150) { // 最小寬度限制
+                el.style.width = newWidth + 'px';
+            }
+        }
+
+        function stopResizeW() {
+            document.removeEventListener('mousemove', resizeWMove);
+            document.removeEventListener('mouseup', stopResizeW);
+            document.removeEventListener('touchmove', resizeWMove);
+            document.removeEventListener('touchend', stopResizeW);
+        }
+
+        handle.addEventListener('mousedown', initResizeW);
+        handle.addEventListener('touchstart', initResizeW, { passive: false });
+    }
+
+    // 等比例縮放功能 (放大鏡)
+    function makeScalable(el) {
+        const handle = el.querySelector('.widget-scale-handle');
+        if (!handle) return;
+        
+        let startX, startWidth, startScale;
+
+        function initResize(e) {
+            e.stopPropagation(); 
+            e.preventDefault();
+            
+            const evt = e.touches ? e.touches[0] : e;
+            startX = evt.clientX;
+            startWidth = parseFloat(getComputedStyle(el).width);
+            startScale = parseFloat(el.dataset.scale || 1);
+
+            if (e.type === 'touchstart') {
+                document.addEventListener('touchmove', resizeMove, { passive: false });
+                document.addEventListener('touchend', stopResize, { passive: false });
+            } else {
+                document.addEventListener('mousemove', resizeMove);
+                document.addEventListener('mouseup', stopResize);
+            }
+        }
+
+        function resizeMove(e) {
+            e.preventDefault();
+            const evt = e.touches ? e.touches[0] : e;
+            const deltaX = evt.clientX - startX;
+            
+            const currentVisualWidth = startWidth * startScale;
+            let newScale = startScale * ((currentVisualWidth + deltaX) / currentVisualWidth);
+            
+            newScale = Math.max(0.5, newScale);
+            
+            el.style.transform = `scale(${newScale})`;
+            el.dataset.scale = newScale;
+        }
+
+        function stopResize() {
+            document.removeEventListener('mousemove', resizeMove);
+            document.removeEventListener('mouseup', stopResize);
+            document.removeEventListener('touchmove', resizeMove);
+            document.removeEventListener('touchend', stopResize);
+        }
+
+        handle.addEventListener('mousedown', initResize);
+        handle.addEventListener('touchstart', initResize, { passive: false });
     }
 
     function makeDraggable(el) {
@@ -1515,13 +1727,13 @@ textarea.names-input {
 
         function dragStart(e) {
             const evt = e.touches ? e.touches[0] : e;
-            if (e.target.matches('input, textarea, button, select, i, canvas, .light, .pasted-img-wrapper') ||
+            // 排除縮放手把和寬度手把
+            if (e.target.matches('input, textarea, button, select, i, canvas, .light, .pasted-img-wrapper, .widget-scale-handle, .widget-width-handle') ||
                 e.target.closest('.opacity-slider-container, .media-form, .media-item-row, .link-input-area') ||
                 e.target.isContentEditable) return;
 
             const rect = el.getBoundingClientRect();
-            if (evt.clientX > rect.right - 20 && evt.clientY > rect.bottom - 20) return;
-
+            
             isDragging = true;
             startX = evt.clientX;
             startY = evt.clientY;
@@ -1568,6 +1780,7 @@ textarea.names-input {
     }
     
     makeDraggable(mascot);
+
     mascot.addEventListener('click', () => { if (mascot.dataset.moved !== 'true') playSound('tada'); });
 
     window.toggleOpacitySlider = b => {
@@ -1819,10 +2032,23 @@ textarea.names-input {
         const s = {
             bg: window.bgState || { type: 'image', val: 1 },
             widgets: [],
-            mascot: { left: mascot.style.left, top: mascot.style.top }
+            mascot: { 
+                left: mascot.style.left, 
+                top: mascot.style.top,
+                src: mascot.src
+            }
         };
         document.querySelectorAll('.widget').forEach(w => {
-            const d = { type: w.dataset.type, left: w.style.left, top: w.style.top, width: w.style.width, height: w.style.height, zIndex: w.style.zIndex, opacity: w.dataset.opacity || 0.95 };
+            const d = { 
+                type: w.dataset.type, 
+                left: w.style.left, 
+                top: w.style.top, 
+                width: w.style.width, 
+                height: w.style.height, 
+                zIndex: w.style.zIndex, 
+                opacity: w.dataset.opacity || 0.95,
+                scale: w.dataset.scale || 1  // 保存縮放比例
+            };
             const c = w.querySelector('.widget-content');
             if (d.type === 'text') {
                 const e = c.querySelector('.text-editor');
@@ -1855,8 +2081,15 @@ textarea.names-input {
                 if (s.bg) setBg(s.bg.type, s.bg.val);
                 workspace.innerHTML = '';
                 s.widgets.forEach(w => createWidget(w.type, w));
-                if (s.mascot?.left) { mascot.style.left = s.mascot.left; mascot.style.top = s.mascot.top; mascot.style.bottom = 'auto'; }
-            } catch (err) {}
+                if (s.mascot) { 
+                    mascot.style.left = s.mascot.left; 
+                    mascot.style.top = s.mascot.top; 
+                    mascot.style.bottom = 'auto'; 
+                    if (s.mascot.src) mascot.src = s.mascot.src;
+                }
+            } catch (err) {
+                alert('讀取檔案失敗，格式可能不正確');
+            }
         };
         r.readAsText(f);
         inp.value = '';
